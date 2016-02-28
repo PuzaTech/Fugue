@@ -15,7 +15,7 @@ public class MainEntrance {
         Option inputFileOption = OptionBuilder.withArgName("inputFile").hasArg().withDescription("the input file").create("input_file");
         Option modelFileOption = OptionBuilder.withArgName("modelFile").hasArg().withDescription("the model file").create("model_file");
         Option taskOption = OptionBuilder.withArgName("task").hasArg().withDescription("the task to perform").create("task");
-        Option topicsOption = OptionBuilder.withArgName("topics").hasArg().withDescription("the task to perform").create("topics");
+        Option topicsOption = OptionBuilder.withArgName("topics").hasArg().withDescription("the number of topics to be discovered").create("topics");
         Option iterOption = OptionBuilder.withArgName("iters").hasArg().withDescription("the number of iterations to perform").create("iters");
         Option topKOption = OptionBuilder.withArgName("topk").hasArg().withDescription("the number of docs to read").create("topk");
 
