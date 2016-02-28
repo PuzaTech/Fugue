@@ -27,4 +27,4 @@ $ ./run.sh topics-ap
 ```
 
 ### License
-© Contributors, 2015. Licensed under an Apache-2 license.
+© Contributors, 2016. Licensed under an Apache-2 license.
