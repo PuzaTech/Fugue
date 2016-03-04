@@ -2,6 +2,7 @@
 [![Build Status](https://travis-ci.org/PuzaTech/Fugue.svg?branch=master)](https://travis-ci.org/PuzaTech/Fugue)
 [![codecov.io](https://codecov.io/github/PuzaTech/Fugue/coverage.svg?branch=master)](https://codecov.io/github/PuzaTech/Fugue?branch=master)
 [![Code Climate](https://codeclimate.com/github/PuzaTech/Fugue/badges/gpa.svg)](https://codeclimate.com/github/PuzaTech/Fugue)
+[![Dependency Status](https://www.versioneye.com/user/projects/56da10fcbfdb33003da61a97/badge.svg?style=flat)](https://www.versioneye.com/user/projects/56da10fcbfdb33003da61a97)
 [![todofy badge](https://todofy.org/b/PuzaTech/Fugue)](https://todofy.org/r/PuzaTech/Fugue)
 [![GitHub license](http://dmlc.github.io/img/apache2.svg)](./LICENSE)
 ## A Topic Modeling Package
