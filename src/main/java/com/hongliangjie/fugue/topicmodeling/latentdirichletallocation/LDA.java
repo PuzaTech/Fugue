@@ -1,11 +1,13 @@
 package com.hongliangjie.fugue.topicmodeling.latentdirichletallocation;
 
 import com.google.gson.Gson;
+import com.hongliangjie.fugue.distributions.MultinomialDistribution;
 import com.hongliangjie.fugue.topicmodeling.Document;
 import com.hongliangjie.fugue.topicmodeling.Feature;
 import com.hongliangjie.fugue.topicmodeling.Message;
 import com.hongliangjie.fugue.topicmodeling.TopicModel;
 import com.hongliangjie.fugue.utils.LogGamma;
+import com.hongliangjie.fugue.utils.RandomUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -243,10 +245,12 @@ public class LDA implements TopicModel {
         InitModel();
         //CountsCheck(true);
 
-        double[] p = new double[TOPIC_NUM];
+        Double[] p = new Double[TOPIC_NUM];
 
         LOGGER.info("Start to perform Gibbs Sampling");
         LOGGER.info("MAX_ITER:" + MAX_ITER);
+
+        MultinomialDistribution dist = new MultinomialDistribution(TOPIC_NUM);
 
         for (CURRENT_ITER = 0; CURRENT_ITER < MAX_ITER; CURRENT_ITER++) {
             LOGGER.info("Start to Iteration " + CURRENT_ITER);
@@ -269,18 +273,11 @@ public class LDA implements TopicModel {
                     // calculate probabilities
                     for (int k = 0; k < TOPIC_NUM; k++) {
                         p[k] = ((wordTopicCounts.get(feature_index)[k] + beta.get(feature_index)) / (topicCounts[k] + betaSum)) * (docTopicBuffer[k] + alpha[k]);
-                        if (k >= 1) {
-                            p[k] += p[k - 1];
-                        }
                     }
 
-                    // scaled sample because of un-normalized p[]
-                    double u = ThreadLocalRandom.current().nextDouble(p[TOPIC_NUM - 1]);
-                    int new_topic = -1;
-                    for (new_topic = 0; new_topic < p.length; new_topic++) {
-                        if (u < p[new_topic])
-                            break;
-                    }
+                    dist.SetProbabilities(p);
+
+                    int new_topic = dist.Sample(RandomUtils.NativeRandom());
 
                     docTopicBuffer[new_topic]++;
                     wordTopicCounts.get(feature_index)[new_topic]++;
