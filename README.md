@@ -1,5 +1,6 @@
 # Fugue
 [![Build Status](https://travis-ci.org/PuzaTech/Fugue.svg?branch=master)](https://travis-ci.org/PuzaTech/Fugue)
+[![codecov.io](https://codecov.io/github/PuzaTech/Fugue/coverage.svg?branch=master)](https://codecov.io/github/PuzaTech/Fugue?branch=master)
 [![todofy badge](https://todofy.org/b/PuzaTech/Fugue)](https://todofy.org/r/PuzaTech/Fugue)
 [![GitHub license](http://dmlc.github.io/img/apache2.svg)](./LICENSE)
 ## A Topic Modeling Package
