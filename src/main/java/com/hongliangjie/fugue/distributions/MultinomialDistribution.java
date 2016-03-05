@@ -13,11 +13,11 @@ public class MultinomialDistribution extends DiscreteDistribution {
         _K = K;
     }
 
-    public Integer Dimensions(){
+    public Integer dimensions(){
         return _K;
     }
 
-    public Double[] SetProbabilities(Double[] prob){
+    public Double[] setProbabilities(Double[] prob){
         for(int i = 0; i < prob.length; i ++){
             if (i > 0) {
                 _accumulatedProbabilities[i] = _accumulatedProbabilities[i - 1] + prob[i];
@@ -30,7 +30,7 @@ public class MultinomialDistribution extends DiscreteDistribution {
     }
 
     @Override
-    public int Sample(double uniformRV) {
+    public int sample(double uniformRV) {
         Double u = uniformRV * _accumulatedProbabilities[_K - 1];
         int index = -1;
         for (index = 0; index < _K; index++) {

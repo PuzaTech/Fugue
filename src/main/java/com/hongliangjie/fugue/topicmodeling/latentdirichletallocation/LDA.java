@@ -275,9 +275,9 @@ public class LDA implements TopicModel {
                         p[k] = ((wordTopicCounts.get(feature_index)[k] + beta.get(feature_index)) / (topicCounts[k] + betaSum)) * (docTopicBuffer[k] + alpha[k]);
                     }
 
-                    dist.SetProbabilities(p);
+                    dist.setProbabilities(p);
 
-                    int new_topic = dist.Sample(RandomUtils.NativeRandom());
+                    int new_topic = dist.sample(RandomUtils.NativeRandom());
 
                     docTopicBuffer[new_topic]++;
                     wordTopicCounts.get(feature_index)[new_topic]++;

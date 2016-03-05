@@ -15,16 +15,16 @@ public class MultinomialDistributionTest {
         MultinomialDistribution theta = new MultinomialDistribution(3);
         Double[] p = new Double[3];
         p[0] = 0.2; p[1] = 0.5; p[2] = 0.3;
-        Double[] accu_p = theta.SetProbabilities(p);
+        Double[] accu_p = theta.setProbabilities(p);
         assertEquals("Testing Accumulate Distribution:", true, (accu_p[2] >= accu_p[1]) && (accu_p[1] >= accu_p[0]));
     }
 
     private int[] _sampleHistogram(MultinomialDistribution dist, int  SampleSize) {
         if (SampleSize <= 0)
             SampleSize = 1;
-        int[] _localHistogram = new int[dist.Dimensions()];
+        int[] _localHistogram = new int[dist.dimensions()];
         for (int i=0; i < SampleSize; i++){
-            int currentIndex = dist.Sample(RandomUtils.NativeRandom());
+            int currentIndex = dist.sample(RandomUtils.NativeRandom());
             _localHistogram[currentIndex] ++;
         }
         return _localHistogram;
@@ -35,9 +35,9 @@ public class MultinomialDistributionTest {
         MultinomialDistribution theta = new MultinomialDistribution(3);
         Double[] p = new Double[3];
         p[0] = 0.0; p[1] = 0.0; p[2] = 1.0;
-        theta.SetProbabilities(p);
+        theta.setProbabilities(p);
 
-        int oneSample = theta.Sample(RandomUtils.NativeRandom());
+        int oneSample = theta.sample(RandomUtils.NativeRandom());
         assertEquals("Testing Sample's Boundaries:", true, ((oneSample < p.length) && (oneSample >= 0)));
 
         int[] h1 = _sampleHistogram(theta, 1000);
@@ -47,7 +47,7 @@ public class MultinomialDistributionTest {
         assertEquals("Testing Extreme Samples 2:", 1000, h1[2]);
 
         p[0] = 0.2; p[1] = 0.7; p[2] = 0.1;
-        theta.SetProbabilities(p);
+        theta.setProbabilities(p);
 
         int N = 1000000;
         int[] h2 = _sampleHistogram(theta, N);
