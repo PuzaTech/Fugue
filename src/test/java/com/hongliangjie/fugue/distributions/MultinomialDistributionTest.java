@@ -52,9 +52,7 @@ public class MultinomialDistributionTest {
         int N = 1000000;
         int[] h2 = _sampleHistogram(theta, N);
 
-        System.out.println(Math.abs(h2[0]/(double)N));
-        System.out.println(Math.abs(h2[1]/(double)N));
-        System.out.println(Math.abs(h2[2]/(double)N));
+
 
         double e1 = Math.abs(h2[0]/(double)N - p[0]);
         double e2 = Math.abs(h2[1]/(double)N - p[1]);
