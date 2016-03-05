@@ -5,7 +5,7 @@ package com.hongliangjie.fugue.distributions;
  */
 public class GammaDistribution extends ContinuousDistribution{
     @Override
-    public double Sample() {
+    public double sample() {
         return 0;
     }
 }
