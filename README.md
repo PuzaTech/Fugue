@@ -12,6 +12,9 @@ Fugue is a research oriented topic modeling package for text mining and machine 
 ### Models/Algorithms
 * latent Dirichlet allocation (LDA) with collapsed Gibbs sampling
 
+### Roadmap
+We are expecting v1.0 in Mid 2016. See [Detailed Plan](https://github.com/PuzaTech/Fugue/wiki/Fugue-1.0-Roadmap).
+
 ### Prerequisites
 * Gradle
 * JDK
