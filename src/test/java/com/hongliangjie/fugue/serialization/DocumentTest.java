@@ -26,7 +26,9 @@ public class DocumentTest {
 
     @Test
     public void testGetDocId() throws Exception {
-
+        Document d = new Document();
+        d.setDocId("abc");
+        assertEquals("Testing DocId", "abc", d.getDocId());
     }
 
     @Test
