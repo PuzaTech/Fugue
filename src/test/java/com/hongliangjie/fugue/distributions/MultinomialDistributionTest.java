@@ -36,10 +36,15 @@ public class MultinomialDistributionTest {
     }
 
     private int[] sampleHistogram(MultinomialDistribution dist, int  sampleSize) {
-        if (sampleSize <= 0)
-            sampleSize = 1;
+        int localSampleSize = 1;
+        if (sampleSize <= 0) {
+            localSampleSize = 1;
+        }
+        else{
+            localSampleSize = sampleSize;
+        }
         int[] localHistogram = new int[dist.dimensions()];
-        for (int i=0; i < sampleSize; i++){
+        for (int i=0; i < localSampleSize; i++){
             int currentIndex = dist.sample(RandomUtils.NativeRandom());
             localHistogram[currentIndex] ++;
         }
