@@ -1,8 +1,8 @@
 package com.hongliangjie.fugue.topicmodeling.reader;
 
 import com.google.gson.Gson;
-import com.hongliangjie.fugue.topicmodeling.Document;
-import com.hongliangjie.fugue.topicmodeling.Feature;
+import com.hongliangjie.fugue.serialization.Document;
+import com.hongliangjie.fugue.serialization.Feature;
 import com.hongliangjie.fugue.topicmodeling.Message;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -44,11 +44,11 @@ public class DataReader {
 
                 // prune document features to the ones we care about
                 Document new_doc = new Document();
-                new_doc.setDoc_id(raw_doc.getDoc_id());
+                new_doc.setDocId(raw_doc.getDocId());
                 List<Feature> new_features = new ArrayList<Feature>();
                 for (Feature f : raw_doc.getFeatures()) {
-                    String feature_type = f.getFeature_type();
-                    String feature_name = f.getFeature_name();
+                    String feature_type = f.getFeatureType();
+                    String feature_name = f.getFeatureName();
                     if (feature_type.equals("TOKEN")) {
                         new_features.add(f);
                         if(!wordsForwardIndex.containsKey(feature_name)){

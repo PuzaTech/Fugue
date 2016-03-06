@@ -1,5 +1,6 @@
 package com.hongliangjie.fugue.topicmodeling;
 
+import com.hongliangjie.fugue.serialization.Document;
 import com.hongliangjie.fugue.topicmodeling.latentdirichletallocation.*;
 import com.hongliangjie.fugue.topicmodeling.reader.*;
 import org.apache.logging.log4j.LogManager;

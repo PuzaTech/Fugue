@@ -2,8 +2,9 @@ package com.hongliangjie.fugue.topicmodeling.latentdirichletallocation;
 
 import com.google.gson.Gson;
 import com.hongliangjie.fugue.distributions.MultinomialDistribution;
-import com.hongliangjie.fugue.topicmodeling.Document;
-import com.hongliangjie.fugue.topicmodeling.Feature;
+import com.hongliangjie.fugue.serialization.Document;
+import com.hongliangjie.fugue.serialization.Feature;
+import com.hongliangjie.fugue.serialization.Model;
 import com.hongliangjie.fugue.topicmodeling.Message;
 import com.hongliangjie.fugue.topicmodeling.TopicModel;
 import com.hongliangjie.fugue.utils.LogGamma;
@@ -97,7 +98,7 @@ public class LDA implements TopicModel {
 
         for (int d = 0; d < internalDocs.size(); d++) {
             for (Feature f : internalDocs.get(d).getFeatures()) {
-                String feature_name = f.getFeature_name();
+                String feature_name = f.getFeatureName();
                 Integer feature_index = wordForwardIndex.get(feature_name);
                 // we randomly assign a topic for this token
                 int topic = ThreadLocalRandom.current().nextInt(0, TOPIC_NUM);
@@ -262,7 +263,7 @@ public class LDA implements TopicModel {
                 int pos = 0;
 
                 for (Feature f : internalDocs.get(d).getFeatures()) {
-                    String feature_name = f.getFeature_name();
+                    String feature_name = f.getFeatureName();
                     Integer feature_index = wordForwardIndex.get(feature_name);
 
                     int current_topic = docTopicAssignment.get(pos);
