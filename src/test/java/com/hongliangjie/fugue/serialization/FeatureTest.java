@@ -31,32 +31,24 @@ public class FeatureTest {
     }
 
     @Test
-    public void testGetFeatureType1() throws Exception {
-
-    }
-
-    @Test
-    public void testGetFeatureName1() throws Exception {
-
-    }
-
-    @Test
-    public void testGetFeatureValue1() throws Exception {
-
-    }
-
-    @Test
     public void testSetFeatureType() throws Exception {
-
+        Feature f = new Feature();
+        f.setFeatureType("abc");
+        assertEquals("Testing FeatureType", "abc", f.getFeatureType());
     }
 
     @Test
     public void testSetFeatureName() throws Exception {
-
+        Feature f = new Feature();
+        f.setFeatureName("abc");
+        assertEquals("Testing FeatureName", "abc", f.getFeatureName());
     }
 
     @Test
     public void testSetFeatureValue() throws Exception {
+        Feature f = new Feature();
+        f.setFeatureValue(1.0);
+        assertEquals("Testing FeatureValue", true, Math.abs(f.getFeatureValue() - 1.0) < 1e-10);
 
     }
 }
