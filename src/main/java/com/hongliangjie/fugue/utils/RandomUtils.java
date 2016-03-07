@@ -8,6 +8,8 @@ import java.util.concurrent.ThreadLocalRandom;
  */
 public class RandomUtils {
 
+    private RandomGNR r;
+
     protected abstract class RandomGNR{
         public abstract double nextDouble();
         public abstract int nextInt(int upper);
@@ -39,9 +41,7 @@ public class RandomUtils {
         public int nextInt(int upper) { return r.nextInt(upper); }
 
     }
-
-    RandomGNR r;
-
+    
     public RandomUtils(){
         this(0);
     }
