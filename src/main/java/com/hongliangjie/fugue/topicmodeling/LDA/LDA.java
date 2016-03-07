@@ -1,4 +1,4 @@
-package com.hongliangjie.fugue.topicmodeling.LDA;
+package com.hongliangjie.fugue.topicmodeling.lda;
 
 import com.google.gson.Gson;
 import com.hongliangjie.fugue.Message;
@@ -63,7 +63,7 @@ public class LDA extends TopicModel {
         return cmdArg;
     }
 
-    protected void InitModel() {
+    protected void initModel() {
 
         TOPIC_NUM = (Integer) cmdArg.getParam("topics");
         MAX_ITER = (Integer) cmdArg.getParam("iters");
@@ -119,17 +119,7 @@ public class LDA extends TopicModel {
         LOGGER.info("Finished initializing model");
     }
 
-
-
-    private double[] EstimateTheta(int[] docTopicBuffer, int docLength) {
-        double[] local_theta = new double[TOPIC_NUM];
-        for (int k = 0; k < TOPIC_NUM; k++) {
-            local_theta[k] = (docTopicBuffer[k] + alpha[k]) / (docLength + alphaSum);
-        }
-        return local_theta;
-    }
-
-    public double Likelihood() {
+    public double likelihood() {
         Double result_1 = 0.0;
         Double result_2 = 0.0;
 
@@ -170,8 +160,9 @@ public class LDA extends TopicModel {
 
     protected abstract class Sampler{
         protected MultinomialDistribution dist;
-        public abstract Integer draw(Integer feature_index, double randomRV);
         protected ProcessDocuments processor;
+
+        public abstract Integer draw(Integer feature_index, double randomRV);
         public void setProcessor(ProcessDocuments proc){
             processor = proc;
         }
@@ -207,7 +198,7 @@ public class LDA extends TopicModel {
 
     protected class ProcessDocuments{
         protected int[] docTopicBuffer;
-        List<Integer> docTopicAssignment;
+        protected List<Integer> docTopicAssignment;
         protected Sampler sampler;
         protected Double[] p;
 
@@ -275,12 +266,12 @@ public class LDA extends TopicModel {
                 LOGGER.info("Finished sampling.");
                 LOGGER.info("Finished Iteration " + CURRENT_ITER);
                 if (CURRENT_ITER % 25 == 0) {
-                    Double likelihood = Likelihood();
+                    Double likelihood = likelihood();
                     LOGGER.info("Iteration " + CURRENT_ITER + " Likelihood:" + Double.toString(likelihood));
                 }
 
                 if ((CURRENT_ITER % 10 == 0) && (save == 1)){
-                    SaveModel();
+                    saveModel();
                 }
 
             }
@@ -288,7 +279,7 @@ public class LDA extends TopicModel {
     }
 
     public void train() {
-        InitModel();
+        initModel();
         LOGGER.info("Start to perform Gibbs Sampling");
         LOGGER.info("MAX_ITER:" + MAX_ITER);
         String samplerStr = cmdArg.getParam("LDASampler").toString();
@@ -315,14 +306,14 @@ public class LDA extends TopicModel {
         s.setProcessor(p);
         p.sampleOverDocs(internalDocs, MAX_ITER, save);
         if (save == 1)
-            SaveModel();
+            saveModel();
     }
 
     public void test() {
 
     }
 
-    public void SaveModel() {
+    public void saveModel() {
         String[] outputFileParts = cmdArg.getParam("modelFile").toString().split(Pattern.quote("."));
         StringBuilder outputFilePrefix = new StringBuilder();
         for(int i = 0; i < outputFileParts.length - 1; i ++){
@@ -352,25 +343,4 @@ public class LDA extends TopicModel {
         }
         LOGGER.info("Finished save model to:" + outputFileName);
     }
-
-    public void LoadModel(){
-        String modelFileName = cmdArg.getParam("modelFile").toString();
-        LOGGER.info("Starting to load model from:" + modelFileName);
-        Gson gson = new Gson();
-
-        try {
-            BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(modelFileName), "UTF8"));
-            String line;
-            String jsonString;
-
-            while ((line = br.readLine()) != null) {
-
-            }
-            br.close();
-        }
-        catch (Exception e){
-            LOGGER.info("Cannot open the model file.");
-        }
-    }
-
 }

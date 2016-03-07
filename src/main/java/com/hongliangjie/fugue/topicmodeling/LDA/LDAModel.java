@@ -1,4 +1,4 @@
-package com.hongliangjie.fugue.topicmodeling.LDA;
+package com.hongliangjie.fugue.topicmodeling.lda;
 
 import com.hongliangjie.fugue.Message;
 import com.hongliangjie.fugue.serialization.Model;

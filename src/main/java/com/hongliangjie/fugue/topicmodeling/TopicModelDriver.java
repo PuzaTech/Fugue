@@ -1,7 +1,7 @@
 package com.hongliangjie.fugue.topicmodeling;
 
 import com.hongliangjie.fugue.Message;
-import com.hongliangjie.fugue.topicmodeling.LDA.LDA;
+import com.hongliangjie.fugue.topicmodeling.lda.LDA;
 import com.hongliangjie.fugue.io.DataReader;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -28,26 +28,29 @@ public class TopicModelDriver {
         DataReader r = new DataReader();
         LOGGER.info("Start to read documents.");
         try {
-            msg = r.Read(msg);
+            msg = r.read(msg);
         } catch (IOException e) {
             e.printStackTrace();
         }
-        LOGGER.info("Finished reading documents.");
+        if (msg != null) {
+            LOGGER.info("Finished reading documents.");
 
-        model.setMessage(msg);
+            model.setMessage(msg);
 
-        String task = msg.getParam("task").toString();
+            String task = msg.getParam("task").toString();
 
-        if(task.equals("train") == true){
-            LOGGER.info("Start to train.");
-            model.train();
-            LOGGER.info("Finished training.");
+            if (("train").equals(task)) {
+                LOGGER.info("Start to train.");
+                model.train();
+                LOGGER.info("Finished training.");
+            } else if (("test").equals(task)) {
+                LOGGER.info("Start to test.");
+                model.test();
+                LOGGER.info("Finished testing.");
+            }
         }
-        else if (task.equals("test") == true){
-            LOGGER.info("Start to test.");
-            model.test();
-            LOGGER.info("Finished testing.");
+        else{
+            LOGGER.info("Failed to perform tasks.");
         }
-
     }
 }

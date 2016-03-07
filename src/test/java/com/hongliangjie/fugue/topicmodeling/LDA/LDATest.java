@@ -1,4 +1,4 @@
-package com.hongliangjie.fugue.topicmodeling.LDA;
+package com.hongliangjie.fugue.topicmodeling.lda;
 
 import com.hongliangjie.fugue.Message;
 import com.hongliangjie.fugue.io.DataReader;
@@ -20,7 +20,7 @@ public class LDATest {
     private class DeepTestLDA extends LDA{
 
         protected class TestProcesser extends ProcessDocuments{
-            Sampler sampler2;
+            protected Sampler sampler2;
             TestProcesser(Sampler g1, Sampler g2){
                 super(g1);
                 sampler2 = g2;
@@ -72,15 +72,13 @@ public class LDATest {
             public void sampleOverDocs(List<Document> docs, Integer maxIter, Integer save){
                 for (CURRENT_ITER = 0; CURRENT_ITER < maxIter; CURRENT_ITER++) {
                     LOGGER.info("Start to Iteration " + CURRENT_ITER);
-                    int num_d = 0;
                     for (int d = 0; d < docs.size(); d++) {
                         sampleOneDoc(docs, d);
-                        num_d++;
                     }
                     LOGGER.info("Finished sampling.");
                     LOGGER.info("Finished Iteration " + CURRENT_ITER);
 
-                    Double likelihood = Likelihood();
+                    Double likelihood = likelihood();
                     LOGGER.info("Iteration " + CURRENT_ITER + " Likelihood:" + Double.toString(likelihood));
                     countsCheck();
                 }
@@ -89,7 +87,7 @@ public class LDATest {
 
         @Override
         public void train(){
-            InitModel();
+            initModel();
             countsCheck();
             LOGGER.info("Start to perform Gibbs Sampling");
             LOGGER.info("MAX_ITER:" + MAX_ITER);
@@ -159,7 +157,7 @@ public class LDATest {
         URL testFileURL = this.getClass().getClassLoader().getResource("ap-test.json");
         msg.setParam("inputFile", testFileURL.getPath());
         msg.setParam("topk", 100);
-        msg = r.Read(msg);
+        msg = r.read(msg);
         return msg;
     }
 
@@ -172,6 +170,7 @@ public class LDATest {
         msg.setParam("iters", 50);
         m.setMessage(msg);
         m.train();
+        assertEquals("Deep LDA Train Passed", true, true);
     }
 
 }

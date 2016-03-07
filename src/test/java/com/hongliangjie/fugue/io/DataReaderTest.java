@@ -22,7 +22,7 @@ public class DataReaderTest {
         Message msg = new Message();
         URL testFileURL = this.getClass().getClassLoader().getResource("ap-test.json");
         msg.setParam("inputFile", testFileURL.getPath());
-        msg = r.Read(msg);
+        msg = r.read(msg);
         // check document
         List<Document> docs = (List<Document>)msg.getParam("docs");
         assertEquals("DataReader docLength", 1, docs.size());
