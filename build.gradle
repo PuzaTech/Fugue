@@ -26,22 +26,11 @@ jacocoTestReport {
 
 check.dependsOn jacocoTestReport
 
-sourceSets {
-    main {
-        java {
-            srcDir 'src/java'
-        }
-        resources {
-            srcDir 'src/resources'
-        }
-    }
-}
-
 jar {
     baseName = 'fugue-topicmodeling'
     version =  '0.1'
     manifest {
-        attributes 'Main-Class': 'com.hongliangjie.fugue.topicmodeling.MainEntrance'
+        attributes 'Main-Class': 'com.hongliangjie.fugue.MainEntrance'
     }
 }
 
@@ -49,7 +38,7 @@ task fatJar(type: Jar) {
     manifest {
         attributes 'Implementation-Title': 'The Fugue Topic Modeling Package',
                 'Implementation-Version': version,
-                'Main-Class': 'com.hongliangjie.fugue.topicmodeling.MainEntrance'
+                'Main-Class': 'com.hongliangjie.fugue.MainEntrance'
     }
     baseName = 'fugue-topicmodeling-all'
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }

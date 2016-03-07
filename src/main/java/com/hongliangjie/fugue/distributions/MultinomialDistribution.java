@@ -34,6 +34,7 @@ public class MultinomialDistribution extends DiscreteDistribution {
     @Override
     public int sample(double uniformRV) {
         Double u = uniformRV * _accumulatedWeights[_K - 1];
+
         int index = -1;
         for (index = 0; index < _K; index++) {
             if (u < _accumulatedWeights[index])
@@ -55,7 +56,8 @@ public class MultinomialDistribution extends DiscreteDistribution {
     }
 
     public int logSample(double uniformRV){
-        Double u = Math.log(uniformRV) + _accumulatedWeights[_K - 1]; // log( (0,1)*N ) -> log(0, 1) + log N where N is the normalization factor
+        // log( (0,1)*N ) -> log(0, 1) + log N where N is the normalization factor
+        Double u = Math.log(uniformRV) + _accumulatedWeights[_K - 1];
         int index = -1;
         for (index = 0; index < _K; index++){
             if (u < _accumulatedWeights[index]){

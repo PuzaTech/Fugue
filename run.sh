@@ -3,12 +3,25 @@
 function train-ap {
     java -Xmx8192m \
 	-jar build/libs/fugue-topicmodeling-all-0.1.jar \
-        -input_file data/ap.json \
+        -inputFile examples/data/ap.json \
         -task train \
         -topics 100 \
         -iters 1000 \
-        -model_file models/model.ap.json \
-        -topk 100000
+        -modelFile examples/models/model.ap.json \
+        -topk 100000 \
+        -LDASampler normal
+}
+
+function train-ap-log {
+    java -Xmx8192m \
+	-jar build/libs/fugue-topicmodeling-all-0.1.jar \
+        -inputFile examples/data/ap.json \
+        -task train \
+        -topics 100 \
+        -iters 1000 \
+        -modelFile examples/models/model.ap.log.json \
+        -topk 100000 \
+        -LDASampler log
 }
 
 function topics-ap {

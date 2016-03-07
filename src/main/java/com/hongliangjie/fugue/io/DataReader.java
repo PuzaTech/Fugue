@@ -1,9 +1,9 @@
-package com.hongliangjie.fugue.topicmodeling.reader;
+package com.hongliangjie.fugue.io;
 
 import com.google.gson.Gson;
 import com.hongliangjie.fugue.serialization.Document;
 import com.hongliangjie.fugue.serialization.Feature;
-import com.hongliangjie.fugue.topicmodeling.Message;
+import com.hongliangjie.fugue.Message;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -22,12 +22,12 @@ public class DataReader {
 
     private static final Logger LOGGER = LogManager.getLogger("FUGUE-TOPICMODELING");
 
-    public DataReader() {
-    }
+    public Message read(Message m) throws IOException {
+        String inputFile = m.getParam("inputFile").toString();
+        Integer top = (Integer)m.getParam("topk");
 
-    public Message Read(Message m) throws IOException {
-        String inputFile = m.GetParam("inputFile").toString();
-        Integer top = (Integer)m.GetParam("topk");
+        if (top == null)
+            top = 1;
 
         Gson gson = new Gson();
 
@@ -49,7 +49,7 @@ public class DataReader {
                 for (Feature f : raw_doc.getFeatures()) {
                     String feature_type = f.getFeatureType();
                     String feature_name = f.getFeatureName();
-                    if (feature_type.equals("TOKEN")) {
+                    if (("TOKEN").equals(feature_type)) {
                         new_features.add(f);
                         if(!wordsForwardIndex.containsKey(feature_name)){
                             wordsForwardIndex.put(feature_name, wordsForwardIndex.size());
@@ -67,15 +67,16 @@ public class DataReader {
                 }
             }
             br.close();
+            LOGGER.info("Total number of documents:" + docs.size());
+            m.setParam("docs", docs);
+            m.setParam("forwardIndex", wordsForwardIndex);
+            m.setParam("invertedIndex", wordsInvertedIndex);
         }
         else{
             System.err.println("Cannot find input file.");
-            System.exit(0);
+            return null;
         }
-        LOGGER.info("Total number of documents:" + docs.size());
-        m.SetParam("docs", docs);
-        m.SetParam("forwardIndex", wordsForwardIndex);
-        m.SetParam("invertedIndex", wordsInvertedIndex);
+
         return m;
     }
 }
