@@ -1,11 +1,11 @@
-package com.hongliangjie.fugue.topicmodeling.latentdirichletallocation;
+package com.hongliangjie.fugue.topicmodeling.LDA;
 
 import com.google.gson.Gson;
+import com.hongliangjie.fugue.Message;
 import com.hongliangjie.fugue.distributions.MultinomialDistribution;
 import com.hongliangjie.fugue.serialization.Document;
 import com.hongliangjie.fugue.serialization.Feature;
 import com.hongliangjie.fugue.serialization.Model;
-import com.hongliangjie.fugue.topicmodeling.Message;
 import com.hongliangjie.fugue.topicmodeling.TopicModel;
 import com.hongliangjie.fugue.utils.LogGamma;
 import com.hongliangjie.fugue.utils.RandomUtils;
@@ -23,7 +23,7 @@ import java.util.regex.Pattern;
 /**
  * Created by liangjie on 10/29/14.
  */
-public class LDA implements TopicModel {
+public class LDA extends TopicModel {
     protected Map<String, Integer> wordForwardIndex;
     protected List<int[]> wordTopicCounts; // how many times a term appears in a topic
     protected int[] topicCounts; // total number of terms that are assigned to a topic
@@ -53,20 +53,22 @@ public class LDA implements TopicModel {
         SAVED = 0;
     }
 
-    public void SetMessage(Message m) {
+    @Override
+    public void setMessage(Message m) {
         cmdArg = m;
     }
 
-    public Message GetMessage(){
+    @Override
+    public Message getMessage(){
         return cmdArg;
     }
 
-    private void InitModel() {
+    protected void InitModel() {
 
-        TOPIC_NUM = (Integer) cmdArg.GetParam("topics");
-        MAX_ITER = (Integer) cmdArg.GetParam("iters");
-        internalDocs = (List<Document>) cmdArg.GetParam("docs");
-        wordForwardIndex = (HashMap<String, Integer>) cmdArg.GetParam("forwardIndex"); // get word forward index
+        TOPIC_NUM = (Integer) cmdArg.getParam("topics");
+        MAX_ITER = (Integer) cmdArg.getParam("iters");
+        internalDocs = (List<Document>) cmdArg.getParam("docs");
+        wordForwardIndex = (HashMap<String, Integer>) cmdArg.getParam("forwardIndex"); // get word forward index
 
         LOGGER.info("Start to initialize model");
         LOGGER.info("Topic Num:" + TOPIC_NUM);
@@ -117,82 +119,7 @@ public class LDA implements TopicModel {
         LOGGER.info("Finished initializing model");
     }
 
-    private void CountsCheck(boolean printOut) {
-        int topic_sum = 0;
 
-        for (int k = 0; k < TOPIC_NUM; k++) {
-            topic_sum += topicCounts[k];
-        }
-
-        if (topic_sum != TOTAL_TOKEN) {
-            System.err.println("topicCounts are not consistent with total token:" + topic_sum + " " + TOTAL_TOKEN);
-            System.exit(0);
-        }
-        if (printOut)
-            LOGGER.info("topicCounts are consistent with total token:" + topic_sum + " " + TOTAL_TOKEN);
-
-        int term_topic_sum = 0;
-        int[] topic_sums = new int[TOPIC_NUM];
-        for (int v = 0; v < wordTopicCounts.size(); v++) {
-            int[] c = wordTopicCounts.get(v);
-            for (int k = 0; k < c.length; k++) {
-                term_topic_sum += c[k];
-                topic_sums[k] += c[k];
-            }
-        }
-
-        if (term_topic_sum != TOTAL_TOKEN) {
-            System.err.println("wordTopicCounts are not consistent with total token:" + term_topic_sum + " " + TOTAL_TOKEN);
-            System.exit(0);
-        }
-        if (printOut)
-            LOGGER.info("wordTopicCounts are consistent with total token:" + term_topic_sum + " " + TOTAL_TOKEN);
-
-        for (int k = 0; k < TOPIC_NUM; k++) {
-            if (topic_sums[k] != topicCounts[k]) {
-                System.err.println("topic_sums are not consistent with topicCounts:" + k + " " + topic_sums[k] + " " + topicCounts[k]);
-                System.exit(0);
-            }
-            if (printOut)
-                LOGGER.info("topic_sums are consistent with topicCounts:" + k + " " + topic_sums[k] + " " + topicCounts[k]);
-        }
-
-        int[] document_agg_topics = new int[TOPIC_NUM];
-        for (int d = 0; d < internalDocs.size(); d++) {
-            List<Integer> docTopicAssignment = docTopicAssignments.get(d);
-            int[] docTopicBuffer = docTopicBuffers.get(d);
-            int pos = internalDocs.get(d).getFeatures().size();
-            int total_topic_sum = 0;
-            for (int k = 0; k < TOPIC_NUM; k++) {
-                total_topic_sum += docTopicBuffer[k];
-            }
-            if (total_topic_sum != pos) {
-                System.err.println("The total_topic_sum is not consistent with number of tokens:" + d + " " + total_topic_sum + " " + pos);
-                System.exit(0);
-            }
-
-            for (Integer z : docTopicAssignment) {
-                document_agg_topics[z] += 1;
-            }
-
-            if (docTopicAssignment.size() != pos) {
-                System.err.println("The total_tokens is not consistent with number of tokens:" + d + " " + docTopicAssignment.size() + " " + pos);
-                System.exit(0);
-            }
-        }
-        if (printOut)
-            LOGGER.info("Document level counts are consistent.");
-
-        for (int k = 0; k < TOPIC_NUM; k++) {
-            if (document_agg_topics[k] != topicCounts[k]) {
-                System.err.println("The aggregated topic assignment is not consistent with topicCounts:" + k + " " + document_agg_topics[k] + " " + topicCounts[k]);
-                System.exit(0);
-            }
-            if (printOut)
-                LOGGER.info("The aggregated topic assignment is consistent with topicCounts:" + k + " " + document_agg_topics[k] + " " + topicCounts[k]);
-        }
-
-    }
 
     private double[] EstimateTheta(int[] docTopicBuffer, int docLength) {
         double[] local_theta = new double[TOPIC_NUM];
@@ -241,83 +168,162 @@ public class LDA implements TopicModel {
         return result_1 + result_2;
     }
 
-    public void Train() {
-
-        InitModel();
-        //CountsCheck(true);
-
-        Double[] p = new Double[TOPIC_NUM];
-
-        LOGGER.info("Start to perform Gibbs Sampling");
-        LOGGER.info("MAX_ITER:" + MAX_ITER);
-
-        MultinomialDistribution dist = new MultinomialDistribution(TOPIC_NUM);
-
-        for (CURRENT_ITER = 0; CURRENT_ITER < MAX_ITER; CURRENT_ITER++) {
-            LOGGER.info("Start to Iteration " + CURRENT_ITER);
-            int num_d = 0;
-            for (int d = 0; d < internalDocs.size(); d++) {
-                List<Integer> docTopicAssignment = docTopicAssignments.get(d);
-                int[] docTopicBuffer = docTopicBuffers.get(d);
-
-                int pos = 0;
-
-                for (Feature f : internalDocs.get(d).getFeatures()) {
-                    String feature_name = f.getFeatureName();
-                    Integer feature_index = wordForwardIndex.get(feature_name);
-
-                    int current_topic = docTopicAssignment.get(pos);
-                    docTopicBuffer[current_topic]--;
-                    wordTopicCounts.get(feature_index)[current_topic]--;
-                    topicCounts[current_topic]--;
-
-                    // calculate log-probabilities
-                    for (int k = 0; k < TOPIC_NUM; k++) {
-                        p[k] = Math.log(docTopicBuffer[k] + alpha[k]);
-                        p[k] += Math.log(wordTopicCounts.get(feature_index)[k] + beta.get(feature_index));
-                        p[k] -= Math.log(topicCounts[k] + betaSum);
-                    }
-
-                    dist.setLogProbabilities(p);
-
-                    int new_topic = dist.logSample(RandomUtils.NativeRandom());
-
-                    docTopicBuffer[new_topic]++;
-                    wordTopicCounts.get(feature_index)[new_topic]++;
-                    topicCounts[new_topic]++;
-                    docTopicAssignment.set(pos, new_topic);
-
-                    pos++;
-
-                }
-
-                num_d++;
-                if (num_d % 500 == 0)
-                    LOGGER.info("Processed:" + num_d);
-            }
-            LOGGER.info("Finished sampling.");
-            LOGGER.info("Finished Iteration " + CURRENT_ITER);
-            if (CURRENT_ITER % 25 == 0) {
-                Double likelihood = Likelihood();
-                LOGGER.info("Iteration " + CURRENT_ITER + " Likelihood:" + Double.toString(likelihood));
-                //CountsCheck(true);
-            }
-
-            if (CURRENT_ITER % 10 == 0){
-                SaveModel();
-            }
-
+    protected abstract class Sampler{
+        protected MultinomialDistribution dist;
+        public abstract Integer draw(Integer feature_index, double randomRV);
+        protected ProcessDocuments processor;
+        public void setProcessor(ProcessDocuments proc){
+            processor = proc;
         }
-
-        SaveModel();
     }
 
-    public void Test() {
+    protected class GibbsSampling extends Sampler{
+        public GibbsSampling(){
+            dist = new MultinomialDistribution(TOPIC_NUM);
+            LOGGER.info("Gibbs Sampling: Normal");
+        }
+
+        @Override
+        public Integer draw(Integer feature_index, double randomRV){
+            Double[] p = processor.computeProbabilities(feature_index);
+            dist.setProbabilities(p);
+            return dist.sample(randomRV);
+        }
+    }
+
+    protected class GibbsLogSampling extends Sampler{
+        public GibbsLogSampling(){
+            dist = new MultinomialDistribution(TOPIC_NUM);
+            LOGGER.info("Gibbs Sampling: Log");
+        }
+
+        @Override
+        public Integer draw(Integer feature_index, double randomRV){
+            Double[] logP = processor.computeLogProbabilities(feature_index);
+            dist.setLogProbabilities(logP);
+            return dist.logSample(randomRV);
+        }
+    }
+
+    protected class ProcessDocuments{
+        protected int[] docTopicBuffer;
+        List<Integer> docTopicAssignment;
+        protected Sampler sampler;
+        protected Double[] p;
+
+        public ProcessDocuments(Sampler s){
+            p = new Double[TOPIC_NUM];
+            sampler = s;
+        }
+
+        public Double[] computeProbabilities(Integer feature_index){
+            // calculate normal probabilities
+            for (int k = 0; k < TOPIC_NUM; k++) {
+                p[k] = ((wordTopicCounts.get(feature_index)[k] + beta.get(feature_index)) / (topicCounts[k] + betaSum)) * (docTopicBuffer[k] + alpha[k]);
+            }
+            return p;
+        }
+
+        public Double[] computeLogProbabilities(Integer feature_index){
+            // calculate log-probabilities
+            for (int k = 0; k < TOPIC_NUM; k++) {
+                p[k] = Math.log(docTopicBuffer[k] + alpha[k]);
+                p[k] += Math.log(wordTopicCounts.get(feature_index)[k] + beta.get(feature_index));
+                p[k] -= Math.log(topicCounts[k] + betaSum);
+            }
+            return p;
+        }
+
+        protected void sampleOneDoc(List<Document> docs, int index){
+            Document d = docs.get(index);
+            docTopicAssignment = docTopicAssignments.get(index);
+            docTopicBuffer = docTopicBuffers.get(index);
+            int pos = 0;
+
+            for (Feature f : d.getFeatures()) {
+                String feature_name = f.getFeatureName();
+                Integer feature_index = wordForwardIndex.get(feature_name);
+
+                int current_topic = docTopicAssignment.get(pos);
+                docTopicBuffer[current_topic]--;
+                wordTopicCounts.get(feature_index)[current_topic]--;
+                topicCounts[current_topic]--;
+
+                double randomRV = RandomUtils.NativeRandom();
+                int new_topic = sampler.draw(feature_index, randomRV);
+
+                docTopicBuffer[new_topic]++;
+                wordTopicCounts.get(feature_index)[new_topic]++;
+                topicCounts[new_topic]++;
+                docTopicAssignment.set(pos, new_topic);
+
+                pos++;
+
+            }
+        }
+
+        public void sampleOverDocs(List<Document> docs, Integer maxIter, Integer save){
+            for (CURRENT_ITER = 0; CURRENT_ITER < maxIter; CURRENT_ITER++) {
+                LOGGER.info("Start to Iteration " + CURRENT_ITER);
+                int num_d = 0;
+                for (int d = 0; d < docs.size(); d++) {
+                    sampleOneDoc(docs, d);
+                    num_d++;
+                    if (num_d % 500 == 0)
+                        LOGGER.info("Processed:" + num_d);
+                }
+                LOGGER.info("Finished sampling.");
+                LOGGER.info("Finished Iteration " + CURRENT_ITER);
+                if (CURRENT_ITER % 25 == 0) {
+                    Double likelihood = Likelihood();
+                    LOGGER.info("Iteration " + CURRENT_ITER + " Likelihood:" + Double.toString(likelihood));
+                }
+
+                if ((CURRENT_ITER % 10 == 0) && (save == 1)){
+                    SaveModel();
+                }
+
+            }
+        }
+    }
+
+    public void train() {
+        InitModel();
+        LOGGER.info("Start to perform Gibbs Sampling");
+        LOGGER.info("MAX_ITER:" + MAX_ITER);
+        String samplerStr = cmdArg.getParam("LDASampler").toString();
+        Integer save = (Integer)cmdArg.getParam("saveModel");
+
+        Sampler s = null;
+        if (samplerStr != null) {
+            if ("normal".equals(samplerStr)) {
+                s = new GibbsSampling();
+
+            }
+            else if ("log".equals(samplerStr)){
+                s = new GibbsLogSampling();
+            }
+            else{
+                s = new GibbsSampling();
+            }
+        }
+        else{
+            s = new GibbsSampling();
+        }
+
+        ProcessDocuments p = new ProcessDocuments(s);
+        s.setProcessor(p);
+        p.sampleOverDocs(internalDocs, MAX_ITER, save);
+        if (save == 1)
+            SaveModel();
+    }
+
+    public void test() {
 
     }
 
     public void SaveModel() {
-        String[] outputFileParts = cmdArg.GetParam("modelFile").toString().split(Pattern.quote("."));
+        String[] outputFileParts = cmdArg.getParam("modelFile").toString().split(Pattern.quote("."));
         StringBuilder outputFilePrefix = new StringBuilder();
         for(int i = 0; i < outputFileParts.length - 1; i ++){
             outputFilePrefix.append(outputFileParts[i] + ".");
@@ -327,11 +333,13 @@ public class LDA implements TopicModel {
         String outputFileName = outputFilePrefix.toString();
         LOGGER.info("Starting to save model to:" + outputFileName);
         Gson gson = new Gson();
-        Model obj = new Model();
-        obj.setAlpha(alpha, cmdArg);
-        obj.setBeta(beta, cmdArg);
-        obj.setTopicCounts(topicCounts);
-        obj.setWordTopicCounts(wordTopicCounts, cmdArg);
+        Model obj = new LDAModel();
+        cmdArg.setParam("alpha", alpha);
+        cmdArg.setParam("beta", beta);
+        cmdArg.setParam("topicCounts", topicCounts);
+        cmdArg.setParam("wordTopicCounts", wordTopicCounts);
+        obj.setParameters(cmdArg);
+
         try {
             BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputFileName), "UTF8"));
             String json = gson.toJson(obj);
@@ -346,7 +354,7 @@ public class LDA implements TopicModel {
     }
 
     public void LoadModel(){
-        String modelFileName = cmdArg.GetParam("modelFile").toString();
+        String modelFileName = cmdArg.getParam("modelFile").toString();
         LOGGER.info("Starting to load model from:" + modelFileName);
         Gson gson = new Gson();
 

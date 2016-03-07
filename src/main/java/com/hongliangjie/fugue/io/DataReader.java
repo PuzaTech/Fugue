@@ -1,9 +1,9 @@
-package com.hongliangjie.fugue.topicmodeling.reader;
+package com.hongliangjie.fugue.io;
 
 import com.google.gson.Gson;
 import com.hongliangjie.fugue.serialization.Document;
 import com.hongliangjie.fugue.serialization.Feature;
-import com.hongliangjie.fugue.topicmodeling.Message;
+import com.hongliangjie.fugue.Message;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -22,12 +22,12 @@ public class DataReader {
 
     private static final Logger LOGGER = LogManager.getLogger("FUGUE-TOPICMODELING");
 
-    public DataReader() {
-    }
-
     public Message Read(Message m) throws IOException {
-        String inputFile = m.GetParam("inputFile").toString();
-        Integer top = (Integer)m.GetParam("topk");
+        String inputFile = m.getParam("inputFile").toString();
+        Integer top = (Integer)m.getParam("topk");
+
+        if (top == null)
+            top = 1;
 
         Gson gson = new Gson();
 
@@ -73,9 +73,9 @@ public class DataReader {
             System.exit(0);
         }
         LOGGER.info("Total number of documents:" + docs.size());
-        m.SetParam("docs", docs);
-        m.SetParam("forwardIndex", wordsForwardIndex);
-        m.SetParam("invertedIndex", wordsInvertedIndex);
+        m.setParam("docs", docs);
+        m.setParam("forwardIndex", wordsForwardIndex);
+        m.setParam("invertedIndex", wordsInvertedIndex);
         return m;
     }
 }

@@ -1,54 +1,51 @@
 package com.hongliangjie.fugue.topicmodeling;
 
-import com.hongliangjie.fugue.serialization.Document;
-import com.hongliangjie.fugue.topicmodeling.latentdirichletallocation.*;
-import com.hongliangjie.fugue.topicmodeling.reader.*;
+import com.hongliangjie.fugue.Message;
+import com.hongliangjie.fugue.topicmodeling.LDA.LDA;
+import com.hongliangjie.fugue.io.DataReader;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by liangjie on 10/29/14.
  */
-public class TopicModels {
+public class TopicModelDriver {
 
     private static final Logger LOGGER = LogManager.getLogger("FUGUE-TOPICMODELING");
 
-    TopicModel model;
-    Message cmdArgs;
+    private TopicModel model;
+    private Message msg;
 
-    public TopicModels(Message args){
+    public TopicModelDriver(Message args){
         model = new LDA();
-        cmdArgs = args;
+        msg = args;
     }
 
-    public void PerformTask(){
+    public void performTask(){
 
         DataReader r = new DataReader();
         LOGGER.info("Start to read documents.");
-        List<Document> docs = new ArrayList<Document>();
         try {
-            cmdArgs = r.Read(cmdArgs);
+            msg = r.Read(msg);
         } catch (IOException e) {
             e.printStackTrace();
         }
         LOGGER.info("Finished reading documents.");
 
-        model.SetMessage(cmdArgs);
+        model.setMessage(msg);
 
-        String task = cmdArgs.GetParam("task").toString();
+        String task = msg.getParam("task").toString();
 
         if(task.equals("train") == true){
             LOGGER.info("Start to train.");
-            model.Train();
+            model.train();
             LOGGER.info("Finished training.");
         }
         else if (task.equals("test") == true){
             LOGGER.info("Start to test.");
-            model.Test();
+            model.test();
             LOGGER.info("Finished testing.");
         }
 
