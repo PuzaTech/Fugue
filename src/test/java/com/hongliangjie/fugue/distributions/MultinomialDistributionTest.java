@@ -36,7 +36,7 @@ public class MultinomialDistributionTest {
     }
 
     private int[] sampleHistogram(MultinomialDistribution dist, int  sampleSize) {
-        RandomUtils r = new RandomUtils(0);
+        RandomUtils r = new RandomUtils(1);
         int localSampleSize = 1;
         if (sampleSize <= 0) {
             localSampleSize = 1;
@@ -59,7 +59,7 @@ public class MultinomialDistributionTest {
         p[0] = 0.0; p[1] = 0.0; p[2] = 1.0;
         theta.setProbabilities(p);
 
-        int oneSample = theta.sample(new RandomUtils(0).nextDouble());
+        int oneSample = theta.sample(new RandomUtils(1).nextDouble());
         assertEquals("Testing Sample's Boundaries:", true, ((oneSample < p.length) && (oneSample >= 0)));
 
         int[] h1 = sampleHistogram(theta, 1000);
@@ -101,7 +101,7 @@ public class MultinomialDistributionTest {
         theta2.setLogProbabilities(logp);
 
         int N = 10000;
-        RandomUtils ru = new RandomUtils(0);
+        RandomUtils ru = new RandomUtils(1);
         for (int i = 0; i < N; i++) {
             Double r = ru.nextDouble();
             int i1 = theta1.sample(r);
