@@ -17,7 +17,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.regex.Pattern;
 
 /**
@@ -35,6 +34,7 @@ public class LDA extends TopicModel {
     protected double betaSum;
     protected double alphaSum;
     protected Message cmdArg;
+    protected RandomUtils randomGNR;
 
     protected int TOPIC_NUM;
     protected int MAX_ITER;
@@ -46,16 +46,44 @@ public class LDA extends TopicModel {
     protected static final Logger LOGGER = LogManager.getLogger("FUGUE-TOPICMODELING");
 
     public LDA() {
+        this(new RandomUtils(0));
+        LOGGER.info("Random Number Generator: Native");
+    }
+
+    public LDA(RandomUtils r){
         TOPIC_NUM = 1;
         MAX_ITER = 250;
         INTERVAL = 5;
         TOTAL_TOKEN = 0;
         SAVED = 0;
+        randomGNR = r;
     }
 
     @Override
     public void setMessage(Message m) {
         cmdArg = m;
+        String randomGNRStr = cmdArg.getParam("random").toString();
+        if (randomGNRStr != null){
+            if ("native".equals(randomGNRStr)){
+                randomGNR = new RandomUtils(0);
+                LOGGER.info("Random Number Generator: Native");
+
+            }
+            else if ("deterministic".equals(randomGNRStr)){
+                randomGNR = new RandomUtils(1);
+                LOGGER.info("Random Number Generator: Deterministic");
+
+            }
+            else{
+                randomGNR = new RandomUtils(0);
+                LOGGER.info("Random Number Generator: Native");
+
+            }
+        }
+        else{
+            randomGNR = new RandomUtils(0);
+            LOGGER.info("Random Number Generator: Native");
+        }
     }
 
     @Override
@@ -103,7 +131,7 @@ public class LDA extends TopicModel {
                 String feature_name = f.getFeatureName();
                 Integer feature_index = wordForwardIndex.get(feature_name);
                 // we randomly assign a topic for this token
-                int topic = ThreadLocalRandom.current().nextInt(0, TOPIC_NUM);
+                int topic = randomGNR.nextInt(TOPIC_NUM);
                 docTopicAssignments.get(d).add(topic);
                 docTopicBuffers.get(d)[topic]++;
                 wordTopicCounts.get(feature_index)[topic]++;
@@ -202,6 +230,10 @@ public class LDA extends TopicModel {
         protected Sampler sampler;
         protected Double[] p;
 
+        public ProcessDocuments(){
+            this(new GibbsSampling());
+        }
+
         public ProcessDocuments(Sampler s){
             p = new Double[TOPIC_NUM];
             sampler = s;
@@ -240,7 +272,7 @@ public class LDA extends TopicModel {
                 wordTopicCounts.get(feature_index)[current_topic]--;
                 topicCounts[current_topic]--;
 
-                double randomRV = RandomUtils.NativeRandom();
+                double randomRV = randomGNR.nextDouble();
                 int new_topic = sampler.draw(feature_index, randomRV);
 
                 docTopicBuffer[new_topic]++;

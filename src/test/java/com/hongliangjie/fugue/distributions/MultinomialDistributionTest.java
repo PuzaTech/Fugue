@@ -36,6 +36,7 @@ public class MultinomialDistributionTest {
     }
 
     private int[] sampleHistogram(MultinomialDistribution dist, int  sampleSize) {
+        RandomUtils r = new RandomUtils(0);
         int localSampleSize = 1;
         if (sampleSize <= 0) {
             localSampleSize = 1;
@@ -45,7 +46,7 @@ public class MultinomialDistributionTest {
         }
         int[] localHistogram = new int[dist.dimensions()];
         for (int i=0; i < localSampleSize; i++){
-            int currentIndex = dist.sample(RandomUtils.NativeRandom());
+            int currentIndex = dist.sample(r.nextDouble());
             localHistogram[currentIndex] ++;
         }
         return localHistogram;
@@ -58,7 +59,7 @@ public class MultinomialDistributionTest {
         p[0] = 0.0; p[1] = 0.0; p[2] = 1.0;
         theta.setProbabilities(p);
 
-        int oneSample = theta.sample(RandomUtils.NativeRandom());
+        int oneSample = theta.sample(new RandomUtils(0).nextDouble());
         assertEquals("Testing Sample's Boundaries:", true, ((oneSample < p.length) && (oneSample >= 0)));
 
         int[] h1 = sampleHistogram(theta, 1000);
@@ -100,8 +101,9 @@ public class MultinomialDistributionTest {
         theta2.setLogProbabilities(logp);
 
         int N = 10000;
+        RandomUtils ru = new RandomUtils(0);
         for (int i = 0; i < N; i++) {
-            Double r = RandomUtils.NativeRandom();
+            Double r = ru.nextDouble();
             int i1 = theta1.sample(r);
             int i2 = theta2.logSample(r);
             assertEquals("Testing Log Sampling Accuracy", i1, i2);
