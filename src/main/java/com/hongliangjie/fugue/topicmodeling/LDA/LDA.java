@@ -7,12 +7,14 @@ import com.hongliangjie.fugue.serialization.Document;
 import com.hongliangjie.fugue.serialization.Feature;
 import com.hongliangjie.fugue.serialization.Model;
 import com.hongliangjie.fugue.topicmodeling.TopicModel;
-import com.hongliangjie.fugue.utils.LogGamma;
-import com.hongliangjie.fugue.utils.RandomUtils;
+import com.hongliangjie.fugue.utils.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -36,6 +38,10 @@ public class LDA extends TopicModel {
     protected double alphaSum;
     protected Message cmdArg;
     protected RandomUtils randomGNR;
+    protected LogUtils logAdd;
+    protected MathExp mathExp;
+    protected MathLog mathLog;
+    protected long[] iterationTimes;
 
     protected int TOPIC_NUM;
     protected int MAX_ITER;
@@ -58,6 +64,7 @@ public class LDA extends TopicModel {
         TOTAL_TOKEN = 0;
         SAVED = 0;
         randomGNR = r;
+        iterationTimes = new long[MAX_ITER];
     }
 
     @Override
@@ -85,6 +92,16 @@ public class LDA extends TopicModel {
             randomGNR = new RandomUtils(0);
             LOGGER.info("Random Number Generator: Native");
         }
+
+        int expInt = (Integer)cmdArg.getParam("exp");
+        mathExp = new MathExp(expInt);
+        LOGGER.info("Math Exp Function:" + expInt);
+
+        int logInt = (Integer)cmdArg.getParam("log");
+        mathLog = new MathLog(logInt);
+        LOGGER.info("Math Log Function:" + logInt);
+
+        logAdd = new LogUtils(mathLog, mathExp);
     }
 
     @Override
@@ -199,7 +216,7 @@ public class LDA extends TopicModel {
 
     protected class GibbsSampling extends Sampler{
         public GibbsSampling(){
-            dist = new MultinomialDistribution(TOPIC_NUM);
+            dist = new MultinomialDistribution(TOPIC_NUM, mathLog);
             LOGGER.info("Gibbs Sampling: Normal");
         }
 
@@ -213,14 +230,14 @@ public class LDA extends TopicModel {
 
     protected class GibbsLogSampling extends Sampler{
         public GibbsLogSampling(){
-            dist = new MultinomialDistribution(TOPIC_NUM);
+            dist = new MultinomialDistribution(TOPIC_NUM, mathLog);
             LOGGER.info("Gibbs Sampling: Log");
         }
 
         @Override
         public Integer draw(Integer feature_index, double randomRV){
             processor.computeLogProbabilities(feature_index);
-            dist.setLogProbabilities(sample_buffer);
+            dist.setLogProbabilities(sample_buffer, logAdd);
             return dist.logSample(randomRV);
         }
     }
@@ -249,9 +266,9 @@ public class LDA extends TopicModel {
         public void computeLogProbabilities(Integer feature_index){
             // calculate log-probabilities
             for (int k = 0; k < TOPIC_NUM; k++) {
-                sample_buffer[k] = Math.log(docTopicBuffer[k] + alpha[k]);
-                sample_buffer[k] += Math.log(wordTopicCounts.get(feature_index)[k] + beta.get(feature_index));
-                sample_buffer[k] -= Math.log(topicCounts[k] + betaSum);
+                sample_buffer[k] = mathLog.compute(docTopicBuffer[k] + alpha[k]);
+                sample_buffer[k] += mathLog.compute(wordTopicCounts.get(feature_index)[k] + beta.get(feature_index));
+                sample_buffer[k] -= mathLog.compute(topicCounts[k] + betaSum);
             }
         }
 
@@ -286,6 +303,7 @@ public class LDA extends TopicModel {
         public void sampleOverDocs(List<Document> docs, Integer maxIter, Integer save){
             for (CURRENT_ITER = 0; CURRENT_ITER < maxIter; CURRENT_ITER++) {
                 LOGGER.info("Start to Iteration " + CURRENT_ITER);
+                long startTime = System.currentTimeMillis();
                 int num_d = 0;
                 for (int d = 0; d < docs.size(); d++) {
                     sampleOneDoc(docs, d);
@@ -303,8 +321,17 @@ public class LDA extends TopicModel {
                 if ((CURRENT_ITER % 10 == 0) && (save == 1)){
                     saveModel();
                 }
-
+                long endTime = System.currentTimeMillis();
+                long timeDifference = endTime - startTime;
+                LOGGER.info("Iteration Duration " + CURRENT_ITER + " " + Double.toString(timeDifference / 1000.0));
+                iterationTimes[CURRENT_ITER] = timeDifference;
             }
+
+            long averageTime = 0;
+            for (int k = 0; k < maxIter; k++){
+                averageTime += iterationTimes[k];
+            }
+            LOGGER.info("Average Iteration Duration " +  Double.toString(averageTime / (double)maxIter));
         }
     }
 

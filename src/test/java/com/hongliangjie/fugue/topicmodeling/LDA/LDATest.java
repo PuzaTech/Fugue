@@ -168,6 +168,8 @@ public class LDATest {
         msg.setParam("iters", 50);
         msg.setParam("saveModel", 0);
         msg.setParam("random", "native");
+        msg.setParam("exp", 1);
+        msg.setParam("log", 1);
         // Here is to test whether normal sampling and log-sampling have the consistent topic assignments for each every step
         // Also this is a very deep test of internal structures
         DeepTestLDA m = new DeepTestLDA();

@@ -1,5 +1,8 @@
 package com.hongliangjie.fugue.distributions;
 
+import com.hongliangjie.fugue.utils.LogUtils;
+import com.hongliangjie.fugue.utils.MathExp;
+import com.hongliangjie.fugue.utils.MathLog;
 import com.hongliangjie.fugue.utils.RandomUtils;
 import org.junit.Test;
 
@@ -10,9 +13,11 @@ import static org.junit.Assert.assertEquals;
  */
 public class MultinomialDistributionTest {
 
+    private LogUtils u = new LogUtils(new MathLog(0), new MathExp(0));
+
     @Test
     public void testSet() throws Exception {
-        MultinomialDistribution theta = new MultinomialDistribution(3);
+        MultinomialDistribution theta = new MultinomialDistribution(3, new MathLog(0));
         double[] p = new double[3];
         p[0] = 0.2; p[1] = 0.5; p[2] = 0.3;
         double[] accu_p = theta.setProbabilities(p);
@@ -21,14 +26,14 @@ public class MultinomialDistributionTest {
 
     @Test
     public void testSetLogProbabilities() throws Exception {
-        MultinomialDistribution theta1 = new MultinomialDistribution(3);
-        MultinomialDistribution theta2 = new MultinomialDistribution(3);
+        MultinomialDistribution theta1 = new MultinomialDistribution(3, new MathLog(0));
+        MultinomialDistribution theta2 = new MultinomialDistribution(3, new MathLog(0));
         double[] p = new double[3];
         p[0] = 0.2; p[1] = 0.5; p[2] = 0.3;
         double[] logp = new double[3];
         logp[0] = Math.log(0.2); logp[1] = Math.log(0.5); logp[2] = Math.log(0.3);
         double[] accu_p = theta1.setProbabilities(p);
-        double[] accu_logp = theta2.setLogProbabilities(logp);
+        double[] accu_logp = theta2.setLogProbabilities(logp, u);
         for (int i = 0; i < 3; i++) {
             double e = Math.abs(accu_p[i] - Math.exp(accu_logp[i]));
             assertEquals("Testing Accumulate Distribution:", true, e < 1e-10);
@@ -54,7 +59,7 @@ public class MultinomialDistributionTest {
 
     @Test
     public void testSample() throws Exception {
-        MultinomialDistribution theta = new MultinomialDistribution(3);
+        MultinomialDistribution theta = new MultinomialDistribution(3, new MathLog(0));
         double[] p = new double[3];
         p[0] = 0.0; p[1] = 0.0; p[2] = 1.0;
         theta.setProbabilities(p);
@@ -90,15 +95,15 @@ public class MultinomialDistributionTest {
 
     @Test
     public void testLogSample() throws Exception {
-        MultinomialDistribution theta1 = new MultinomialDistribution(3);
-        MultinomialDistribution theta2 = new MultinomialDistribution(3);
+        MultinomialDistribution theta1 = new MultinomialDistribution(3, new MathLog(0));
+        MultinomialDistribution theta2 = new MultinomialDistribution(3, new MathLog(0));
         double[] p = new double[3];
         p[0] = 1.2; p[1] = 2.3; p[2] = 11.5;
         double[] logp = new double[3];
         for(int i = 0; i < p.length; i++)
             logp[i] = Math.log(p[i]);
         theta1.setProbabilities(p);
-        theta2.setLogProbabilities(logp);
+        theta2.setLogProbabilities(logp, u);
 
         int N = 10000;
         RandomUtils ru = new RandomUtils(1);

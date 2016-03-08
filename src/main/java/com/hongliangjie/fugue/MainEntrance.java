@@ -24,8 +24,8 @@ public class MainEntrance {
         Option topKOption = Option.builder().longOpt("topk").desc("the number of docs to read").hasArg().argName("topk").build();
         Option LDASamplerOption = Option.builder().longOpt("LDASampler").desc("the sampler to use for LDA").hasArg().argName("LDASampler").build();
         Option randomOption = Option.builder().longOpt("random").desc("the random number generator").hasArg().argName("random").build();
-
-
+        Option expOption = Option.builder().longOpt("exp").desc("the math exp function").hasArg().argName("exp").build();
+        Option logOption = Option.builder().longOpt("log").desc("the math log function").hasArg().argName("log").build();
 
         Option helpOption = new Option("help", "print out help message");
 
@@ -38,6 +38,8 @@ public class MainEntrance {
         options.addOption(topKOption);
         options.addOption(LDASamplerOption);
         options.addOption(randomOption);
+        options.addOption(expOption);
+        options.addOption(logOption);
 
         return options;
     }
@@ -80,12 +82,33 @@ public class MainEntrance {
                 }
                 if (line.hasOption("LDASampler")) {
                     cmd.setParam("LDASampler", line.getOptionValue("LDASampler"));
-                    LOGGER.info("LDASampler:" + cmd.getParam("LDASampler").toString());
+                }
+                else{
+                    cmd.setParam("LDASampler", "normal");
                 }
                 if (line.hasOption("random")) {
                     cmd.setParam("random", line.getOptionValue("random"));
-                    LOGGER.info("random:" + cmd.getParam("random").toString());
                 }
+                else{
+                    cmd.setParam("random", "native");
+                }
+                if (line.hasOption("log")) {
+                    cmd.setParam("log", Integer.parseInt(line.getOptionValue("log")));
+                }
+                else{
+                    cmd.setParam("log", 0);
+                }
+
+                if (line.hasOption("exp")) {
+                    cmd.setParam("exp", Integer.parseInt(line.getOptionValue("exp")));
+                }
+                else {
+                    cmd.setParam("exp", 0);
+                }
+                LOGGER.info("[CMD] LDA Sampler:" + cmd.getParam("LDASampler").toString());
+                LOGGER.info("[CMD] Random Number Generator:" + cmd.getParam("random").toString());
+                LOGGER.info("[CMD] Math Log:" + cmd.getParam("log").toString());
+                LOGGER.info("[CMD] Math Exp:" + cmd.getParam("exp").toString());
                 cmd.setParam("saveModel", 1);
             }
         } catch (ParseException exp) {
