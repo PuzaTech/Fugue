@@ -9,7 +9,8 @@ function train-ap {
         -iters 1000 \
         -modelFile examples/models/model.ap.json \
         -topk 100000 \
-        -LDASampler normal
+        -LDASampler normal \
+        -random deterministic
 }
 
 function train-ap-log {
@@ -19,17 +20,20 @@ function train-ap-log {
         -task train \
         -topics 100 \
         -iters 1000 \
-        -modelFile examples/models/model.ap.log.json \
+        -modelFile examples/models/model.ap-log.json \
         -topk 100000 \
         -LDASampler log \
-        -random native
+        -random deterministic \
+        -exp 2 \
+        -log 2
 }
 
 function topics-ap {
+    PREFIX=examples/models/model.ap-log
     python src/main/python/tm.py \
     --task topics \
-    --model_file models/model.ap.0.json,models/model.ap.1.json,models/model.ap.2.json,models/model.ap.3.json,models/model.ap.4.json,models/model.ap.5.json,models/model.ap.6.json,models/model.ap.7.json,models/model.ap.8.json,models/model.ap.9.json \
-    --output_file results/ap.average.topics
+    --model_file $PREFIX.0.json,$PREFIX.1.json,$PREFIX.2.json,$PREFIX.3.json,$PREFIX.4.json,$PREFIX.5.json,$PREFIX.6.json,$PREFIX.7.json,$PREFIX.8.json,$PREFIX.9.json \
+    --output_file examples/results/ap-log.average.topics
 }
 
 function build {
