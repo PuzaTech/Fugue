@@ -21,7 +21,8 @@ function train-ap-log {
         -iters 1000 \
         -modelFile examples/models/model.ap.log.json \
         -topk 100000 \
-        -LDASampler log
+        -LDASampler log \
+        -random native
 }
 
 function topics-ap {

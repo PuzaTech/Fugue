@@ -7,19 +7,19 @@ import com.hongliangjie.fugue.utils.LogUtils;
  */
 public class MultinomialDistribution extends DiscreteDistribution {
 
-    protected Double[] _accumulatedWeights;
-    protected Integer _K;
+    protected double[] _accumulatedWeights;
+    protected int _K;
 
     public MultinomialDistribution(int K){
-        _accumulatedWeights = new Double[K];
+        _accumulatedWeights = new double[K];
         _K = K;
     }
 
-    public Integer dimensions(){
+    public int dimensions(){
         return _K;
     }
 
-    public Double[] setProbabilities(Double[] prob){
+    public double[] setProbabilities(double[] prob){
         for(int i = 0; i < prob.length; i ++){
             if (i == 0) {
                 _accumulatedWeights[i] = prob[i];
@@ -33,7 +33,7 @@ public class MultinomialDistribution extends DiscreteDistribution {
 
     @Override
     public int sample(double uniformRV) {
-        Double u = uniformRV * _accumulatedWeights[_K - 1];
+        double u = uniformRV * _accumulatedWeights[_K - 1];
 
         int index = -1;
         for (index = 0; index < _K; index++) {
@@ -43,7 +43,7 @@ public class MultinomialDistribution extends DiscreteDistribution {
         return index;
     }
 
-    public Double[] setLogProbabilities(Double[] logProb){
+    public double[] setLogProbabilities(double[] logProb){
         for(int i = 0; i < logProb.length; i++){
             if (i == 0) {
                 _accumulatedWeights[i] = logProb[i];
@@ -57,7 +57,7 @@ public class MultinomialDistribution extends DiscreteDistribution {
 
     public int logSample(double uniformRV){
         // log( (0,1)*N ) -> log(0, 1) + log N where N is the normalization factor
-        Double u = Math.log(uniformRV) + _accumulatedWeights[_K - 1];
+        double u = Math.log(uniformRV) + _accumulatedWeights[_K - 1];
         int index = -1;
         for (index = 0; index < _K; index++){
             if (u < _accumulatedWeights[index]){

@@ -41,7 +41,7 @@ public class RandomUtils {
         public int nextInt(int upper) { return r.nextInt(upper); }
 
     }
-    
+
     public RandomUtils(){
         this(0);
     }

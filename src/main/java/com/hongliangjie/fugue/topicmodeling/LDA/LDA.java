@@ -148,8 +148,8 @@ public class LDA extends TopicModel {
     }
 
     public double likelihood() {
-        Double result_1 = 0.0;
-        Double result_2 = 0.0;
+        double result_1 = 0.0;
+        double result_2 = 0.0;
 
         // topics side likelihood
         for (int v = 0; v < beta.size(); v++) {
@@ -158,8 +158,8 @@ public class LDA extends TopicModel {
         result_1 = TOPIC_NUM * (LogGamma.logGamma(betaSum) - result_1);
 
         for (int k = 0; k < TOPIC_NUM; k++) {
-            Double part_1 = 0.0;
-            Double part_2 = 0.0;
+            double part_1 = 0.0;
+            double part_2 = 0.0;
             for (int v=0; v < wordTopicCounts.size(); v++) {
                 part_1 = part_1 + LogGamma.logGamma(wordTopicCounts.get(v)[k] + beta.get(v));
                 part_2 = part_2 + (wordTopicCounts.get(v)[k] + beta.get(v));
@@ -174,8 +174,8 @@ public class LDA extends TopicModel {
         result_2 = docTopicBuffers.size() * (LogGamma.logGamma(alphaSum) - result_2);
 
         for (int d = 0; d < docTopicBuffers.size(); d++) {
-            Double part_1 = 0.0;
-            Double part_2 = 0.0;
+            double part_1 = 0.0;
+            double part_2 = 0.0;
             for (int k = 0; k < TOPIC_NUM; k++) {
                 part_1 = part_1 + LogGamma.logGamma(docTopicBuffers.get(d)[k] + alpha[k]);
                 part_2 = part_2 + docTopicBuffers.get(d)[k] + alpha[k];
@@ -204,7 +204,7 @@ public class LDA extends TopicModel {
 
         @Override
         public Integer draw(Integer feature_index, double randomRV){
-            Double[] p = processor.computeProbabilities(feature_index);
+            double[] p = processor.computeProbabilities(feature_index);
             dist.setProbabilities(p);
             return dist.sample(randomRV);
         }
@@ -218,7 +218,7 @@ public class LDA extends TopicModel {
 
         @Override
         public Integer draw(Integer feature_index, double randomRV){
-            Double[] logP = processor.computeLogProbabilities(feature_index);
+            double[] logP = processor.computeLogProbabilities(feature_index);
             dist.setLogProbabilities(logP);
             return dist.logSample(randomRV);
         }
@@ -228,18 +228,18 @@ public class LDA extends TopicModel {
         protected int[] docTopicBuffer;
         protected List<Integer> docTopicAssignment;
         protected Sampler sampler;
-        protected Double[] p;
+        protected double[] p;
 
         public ProcessDocuments(){
             this(new GibbsSampling());
         }
 
         public ProcessDocuments(Sampler s){
-            p = new Double[TOPIC_NUM];
+            p = new double[TOPIC_NUM];
             sampler = s;
         }
 
-        public Double[] computeProbabilities(Integer feature_index){
+        public double[] computeProbabilities(Integer feature_index){
             // calculate normal probabilities
             for (int k = 0; k < TOPIC_NUM; k++) {
                 p[k] = ((wordTopicCounts.get(feature_index)[k] + beta.get(feature_index)) / (topicCounts[k] + betaSum)) * (docTopicBuffer[k] + alpha[k]);
@@ -247,7 +247,7 @@ public class LDA extends TopicModel {
             return p;
         }
 
-        public Double[] computeLogProbabilities(Integer feature_index){
+        public double[] computeLogProbabilities(Integer feature_index){
             // calculate log-probabilities
             for (int k = 0; k < TOPIC_NUM; k++) {
                 p[k] = Math.log(docTopicBuffer[k] + alpha[k]);
@@ -298,7 +298,7 @@ public class LDA extends TopicModel {
                 LOGGER.info("Finished sampling.");
                 LOGGER.info("Finished Iteration " + CURRENT_ITER);
                 if (CURRENT_ITER % 25 == 0) {
-                    Double likelihood = likelihood();
+                    double likelihood = likelihood();
                     LOGGER.info("Iteration " + CURRENT_ITER + " Likelihood:" + Double.toString(likelihood));
                 }
 
