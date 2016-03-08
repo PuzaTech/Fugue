@@ -31,6 +31,7 @@ public class LDA extends TopicModel {
     protected List<Document> internalDocs;
     protected double[] alpha;
     protected List<Double> beta;
+    protected double[] sample_buffer;
     protected double betaSum;
     protected double alphaSum;
     protected Message cmdArg;
@@ -204,8 +205,8 @@ public class LDA extends TopicModel {
 
         @Override
         public Integer draw(Integer feature_index, double randomRV){
-            double[] p = processor.computeProbabilities(feature_index);
-            dist.setProbabilities(p);
+            processor.computeProbabilities(feature_index);
+            dist.setProbabilities(sample_buffer);
             return dist.sample(randomRV);
         }
     }
@@ -218,8 +219,8 @@ public class LDA extends TopicModel {
 
         @Override
         public Integer draw(Integer feature_index, double randomRV){
-            double[] logP = processor.computeLogProbabilities(feature_index);
-            dist.setLogProbabilities(logP);
+            processor.computeLogProbabilities(feature_index);
+            dist.setLogProbabilities(sample_buffer);
             return dist.logSample(randomRV);
         }
     }
@@ -228,33 +229,30 @@ public class LDA extends TopicModel {
         protected int[] docTopicBuffer;
         protected List<Integer> docTopicAssignment;
         protected Sampler sampler;
-        protected double[] p;
 
         public ProcessDocuments(){
             this(new GibbsSampling());
         }
 
         public ProcessDocuments(Sampler s){
-            p = new double[TOPIC_NUM];
+            sample_buffer = new double[TOPIC_NUM];
             sampler = s;
         }
 
-        public double[] computeProbabilities(Integer feature_index){
+        public void computeProbabilities(Integer feature_index){
             // calculate normal probabilities
             for (int k = 0; k < TOPIC_NUM; k++) {
-                p[k] = ((wordTopicCounts.get(feature_index)[k] + beta.get(feature_index)) / (topicCounts[k] + betaSum)) * (docTopicBuffer[k] + alpha[k]);
+                sample_buffer[k] = ((wordTopicCounts.get(feature_index)[k] + beta.get(feature_index)) / (topicCounts[k] + betaSum)) * (docTopicBuffer[k] + alpha[k]);
             }
-            return p;
         }
 
-        public double[] computeLogProbabilities(Integer feature_index){
+        public void computeLogProbabilities(Integer feature_index){
             // calculate log-probabilities
             for (int k = 0; k < TOPIC_NUM; k++) {
-                p[k] = Math.log(docTopicBuffer[k] + alpha[k]);
-                p[k] += Math.log(wordTopicCounts.get(feature_index)[k] + beta.get(feature_index));
-                p[k] -= Math.log(topicCounts[k] + betaSum);
+                sample_buffer[k] = Math.log(docTopicBuffer[k] + alpha[k]);
+                sample_buffer[k] += Math.log(wordTopicCounts.get(feature_index)[k] + beta.get(feature_index));
+                sample_buffer[k] -= Math.log(topicCounts[k] + betaSum);
             }
-            return p;
         }
 
         protected void sampleOneDoc(List<Document> docs, int index){

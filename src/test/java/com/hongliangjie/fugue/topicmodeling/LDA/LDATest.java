@@ -45,13 +45,13 @@ public class LDATest {
                     int new_topic = sampler.draw(feature_index, randomRV);
                     double[] backupP = new double[TOPIC_NUM];
                     for(int k = 0; k < TOPIC_NUM; k++){
-                        backupP[k] = p[k];
+                        backupP[k] = sample_buffer[k];
                     }
 
                     int log_topic = sampler2.draw(feature_index, randomRV);
 
                     for(int k = 0; k < TOPIC_NUM; k++){
-                        double e = Math.abs(Math.exp(p[k]) - backupP[k]);
+                        double e = Math.abs(Math.exp(sample_buffer[k]) - backupP[k]);
                         assertEquals("probability is not consistent", true, e < 1e-10);
                     }
 
