@@ -17,7 +17,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.regex.Pattern;
 
 /**
@@ -32,9 +31,11 @@ public class LDA extends TopicModel {
     protected List<Document> internalDocs;
     protected double[] alpha;
     protected List<Double> beta;
+    protected double[] sample_buffer;
     protected double betaSum;
     protected double alphaSum;
     protected Message cmdArg;
+    protected RandomUtils randomGNR;
 
     protected int TOPIC_NUM;
     protected int MAX_ITER;
@@ -46,16 +47,44 @@ public class LDA extends TopicModel {
     protected static final Logger LOGGER = LogManager.getLogger("FUGUE-TOPICMODELING");
 
     public LDA() {
+        this(new RandomUtils(0));
+        LOGGER.info("Random Number Generator: Native");
+    }
+
+    public LDA(RandomUtils r){
         TOPIC_NUM = 1;
         MAX_ITER = 250;
         INTERVAL = 5;
         TOTAL_TOKEN = 0;
         SAVED = 0;
+        randomGNR = r;
     }
 
     @Override
     public void setMessage(Message m) {
         cmdArg = m;
+        String randomGNRStr = cmdArg.getParam("random").toString();
+        if (randomGNRStr != null){
+            if ("native".equals(randomGNRStr)){
+                randomGNR = new RandomUtils(0);
+                LOGGER.info("Random Number Generator: Native");
+
+            }
+            else if ("deterministic".equals(randomGNRStr)){
+                randomGNR = new RandomUtils(1);
+                LOGGER.info("Random Number Generator: Deterministic");
+
+            }
+            else{
+                randomGNR = new RandomUtils(0);
+                LOGGER.info("Random Number Generator: Native");
+
+            }
+        }
+        else{
+            randomGNR = new RandomUtils(0);
+            LOGGER.info("Random Number Generator: Native");
+        }
     }
 
     @Override
@@ -103,7 +132,7 @@ public class LDA extends TopicModel {
                 String feature_name = f.getFeatureName();
                 Integer feature_index = wordForwardIndex.get(feature_name);
                 // we randomly assign a topic for this token
-                int topic = ThreadLocalRandom.current().nextInt(0, TOPIC_NUM);
+                int topic = randomGNR.nextInt(TOPIC_NUM);
                 docTopicAssignments.get(d).add(topic);
                 docTopicBuffers.get(d)[topic]++;
                 wordTopicCounts.get(feature_index)[topic]++;
@@ -120,8 +149,8 @@ public class LDA extends TopicModel {
     }
 
     public double likelihood() {
-        Double result_1 = 0.0;
-        Double result_2 = 0.0;
+        double result_1 = 0.0;
+        double result_2 = 0.0;
 
         // topics side likelihood
         for (int v = 0; v < beta.size(); v++) {
@@ -130,8 +159,8 @@ public class LDA extends TopicModel {
         result_1 = TOPIC_NUM * (LogGamma.logGamma(betaSum) - result_1);
 
         for (int k = 0; k < TOPIC_NUM; k++) {
-            Double part_1 = 0.0;
-            Double part_2 = 0.0;
+            double part_1 = 0.0;
+            double part_2 = 0.0;
             for (int v=0; v < wordTopicCounts.size(); v++) {
                 part_1 = part_1 + LogGamma.logGamma(wordTopicCounts.get(v)[k] + beta.get(v));
                 part_2 = part_2 + (wordTopicCounts.get(v)[k] + beta.get(v));
@@ -146,8 +175,8 @@ public class LDA extends TopicModel {
         result_2 = docTopicBuffers.size() * (LogGamma.logGamma(alphaSum) - result_2);
 
         for (int d = 0; d < docTopicBuffers.size(); d++) {
-            Double part_1 = 0.0;
-            Double part_2 = 0.0;
+            double part_1 = 0.0;
+            double part_2 = 0.0;
             for (int k = 0; k < TOPIC_NUM; k++) {
                 part_1 = part_1 + LogGamma.logGamma(docTopicBuffers.get(d)[k] + alpha[k]);
                 part_2 = part_2 + docTopicBuffers.get(d)[k] + alpha[k];
@@ -176,8 +205,8 @@ public class LDA extends TopicModel {
 
         @Override
         public Integer draw(Integer feature_index, double randomRV){
-            Double[] p = processor.computeProbabilities(feature_index);
-            dist.setProbabilities(p);
+            processor.computeProbabilities(feature_index);
+            dist.setProbabilities(sample_buffer);
             return dist.sample(randomRV);
         }
     }
@@ -190,8 +219,8 @@ public class LDA extends TopicModel {
 
         @Override
         public Integer draw(Integer feature_index, double randomRV){
-            Double[] logP = processor.computeLogProbabilities(feature_index);
-            dist.setLogProbabilities(logP);
+            processor.computeLogProbabilities(feature_index);
+            dist.setLogProbabilities(sample_buffer);
             return dist.logSample(randomRV);
         }
     }
@@ -200,29 +229,30 @@ public class LDA extends TopicModel {
         protected int[] docTopicBuffer;
         protected List<Integer> docTopicAssignment;
         protected Sampler sampler;
-        protected Double[] p;
+
+        public ProcessDocuments(){
+            this(new GibbsSampling());
+        }
 
         public ProcessDocuments(Sampler s){
-            p = new Double[TOPIC_NUM];
+            sample_buffer = new double[TOPIC_NUM];
             sampler = s;
         }
 
-        public Double[] computeProbabilities(Integer feature_index){
+        public void computeProbabilities(Integer feature_index){
             // calculate normal probabilities
             for (int k = 0; k < TOPIC_NUM; k++) {
-                p[k] = ((wordTopicCounts.get(feature_index)[k] + beta.get(feature_index)) / (topicCounts[k] + betaSum)) * (docTopicBuffer[k] + alpha[k]);
+                sample_buffer[k] = ((wordTopicCounts.get(feature_index)[k] + beta.get(feature_index)) / (topicCounts[k] + betaSum)) * (docTopicBuffer[k] + alpha[k]);
             }
-            return p;
         }
 
-        public Double[] computeLogProbabilities(Integer feature_index){
+        public void computeLogProbabilities(Integer feature_index){
             // calculate log-probabilities
             for (int k = 0; k < TOPIC_NUM; k++) {
-                p[k] = Math.log(docTopicBuffer[k] + alpha[k]);
-                p[k] += Math.log(wordTopicCounts.get(feature_index)[k] + beta.get(feature_index));
-                p[k] -= Math.log(topicCounts[k] + betaSum);
+                sample_buffer[k] = Math.log(docTopicBuffer[k] + alpha[k]);
+                sample_buffer[k] += Math.log(wordTopicCounts.get(feature_index)[k] + beta.get(feature_index));
+                sample_buffer[k] -= Math.log(topicCounts[k] + betaSum);
             }
-            return p;
         }
 
         protected void sampleOneDoc(List<Document> docs, int index){
@@ -240,7 +270,7 @@ public class LDA extends TopicModel {
                 wordTopicCounts.get(feature_index)[current_topic]--;
                 topicCounts[current_topic]--;
 
-                double randomRV = RandomUtils.NativeRandom();
+                double randomRV = randomGNR.nextDouble();
                 int new_topic = sampler.draw(feature_index, randomRV);
 
                 docTopicBuffer[new_topic]++;
@@ -266,7 +296,7 @@ public class LDA extends TopicModel {
                 LOGGER.info("Finished sampling.");
                 LOGGER.info("Finished Iteration " + CURRENT_ITER);
                 if (CURRENT_ITER % 25 == 0) {
-                    Double likelihood = likelihood();
+                    double likelihood = likelihood();
                     LOGGER.info("Iteration " + CURRENT_ITER + " Likelihood:" + Double.toString(likelihood));
                 }
 

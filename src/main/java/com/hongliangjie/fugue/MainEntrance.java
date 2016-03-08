@@ -23,6 +23,8 @@ public class MainEntrance {
         Option iterOption = Option.builder().longOpt("iters").desc("the number of iterations to perform").hasArg().argName("iters").build();
         Option topKOption = Option.builder().longOpt("topk").desc("the number of docs to read").hasArg().argName("topk").build();
         Option LDASamplerOption = Option.builder().longOpt("LDASampler").desc("the sampler to use for LDA").hasArg().argName("LDASampler").build();
+        Option randomOption = Option.builder().longOpt("random").desc("the random number generator").hasArg().argName("random").build();
+
 
 
         Option helpOption = new Option("help", "print out help message");
@@ -35,6 +37,7 @@ public class MainEntrance {
         options.addOption(iterOption);
         options.addOption(topKOption);
         options.addOption(LDASamplerOption);
+        options.addOption(randomOption);
 
         return options;
     }
@@ -78,6 +81,10 @@ public class MainEntrance {
                 if (line.hasOption("LDASampler")) {
                     cmd.setParam("LDASampler", line.getOptionValue("LDASampler"));
                     LOGGER.info("LDASampler:" + cmd.getParam("LDASampler").toString());
+                }
+                if (line.hasOption("random")) {
+                    cmd.setParam("random", line.getOptionValue("random"));
+                    LOGGER.info("random:" + cmd.getParam("random").toString());
                 }
                 cmd.setParam("saveModel", 1);
             }

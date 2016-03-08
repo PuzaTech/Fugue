@@ -12,7 +12,7 @@ public class GammaDistributionTest {
     @Test
     public void testSample() throws Exception {
         GammaDistribution g = new GammaDistribution();
-        Double sample = g.sample();
+        double sample = g.sample();
         assertEquals("PlaceHolder Test", true, Math.abs(sample - 0.0) < 1e-10);
     }
 }

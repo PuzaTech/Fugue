@@ -4,7 +4,6 @@ import com.hongliangjie.fugue.Message;
 import com.hongliangjie.fugue.io.DataReader;
 import com.hongliangjie.fugue.serialization.Document;
 import com.hongliangjie.fugue.serialization.Feature;
-import com.hongliangjie.fugue.utils.RandomUtils;
 import org.junit.Test;
 
 import java.net.URL;
@@ -42,17 +41,17 @@ public class LDATest {
                     wordTopicCounts.get(feature_index)[current_topic]--;
                     topicCounts[current_topic]--;
 
-                    double randomRV = RandomUtils.NativeRandom();
+                    double randomRV = randomGNR.nextDouble();
                     int new_topic = sampler.draw(feature_index, randomRV);
-                    Double[] backupP = new Double[TOPIC_NUM];
+                    double[] backupP = new double[TOPIC_NUM];
                     for(int k = 0; k < TOPIC_NUM; k++){
-                        backupP[k] = p[k];
+                        backupP[k] = sample_buffer[k];
                     }
 
                     int log_topic = sampler2.draw(feature_index, randomRV);
 
                     for(int k = 0; k < TOPIC_NUM; k++){
-                        Double e = Math.abs(Math.exp(p[k]) - backupP[k]);
+                        double e = Math.abs(Math.exp(sample_buffer[k]) - backupP[k]);
                         assertEquals("probability is not consistent", true, e < 1e-10);
                     }
 
@@ -78,7 +77,7 @@ public class LDATest {
                     LOGGER.info("Finished sampling.");
                     LOGGER.info("Finished Iteration " + CURRENT_ITER);
 
-                    Double likelihood = likelihood();
+                    double likelihood = likelihood();
                     LOGGER.info("Iteration " + CURRENT_ITER + " Likelihood:" + Double.toString(likelihood));
                     countsCheck();
                 }
@@ -164,13 +163,40 @@ public class LDATest {
 
     @Test
     public void testTrain() throws Exception {
-        DeepTestLDA m = new DeepTestLDA();
         Message msg = prepareDocuments();
         msg.setParam("topics", 10);
         msg.setParam("iters", 50);
+        msg.setParam("saveModel", 0);
+        msg.setParam("random", "native");
+        // Here is to test whether normal sampling and log-sampling have the consistent topic assignments for each every step
+        // Also this is a very deep test of internal structures
+        DeepTestLDA m = new DeepTestLDA();
         m.setMessage(msg);
         m.train();
         assertEquals("Deep LDA Train Passed", true, true);
+        // This is a black-box test
+        msg.setParam("LDASampler", "normal");
+        msg.setParam("random", "deterministic");
+        msg.setParam("iters", 1);
+        LDA normalLDA1 = new LDA();
+        normalLDA1.setMessage(msg);
+        normalLDA1.train();
+        double l1 = normalLDA1.likelihood();
+        double e1 = Math.abs(l1 - (-201179.71361803956));
+        assertEquals("Deterministic Sampling", true, e1 < 1e-10);
+        LDA normalLDA2 = new LDA();
+        normalLDA2.setMessage(msg);
+        normalLDA2.train();
+        double l2 = normalLDA2.likelihood();
+        double e2 = Math.abs(l2 - (-201179.71361803956));
+        assertEquals("Deterministic Sampling", true, e2 < 1e-10);
+        msg.setParam("LDASampler", "log");
+        LDA logLDA = new LDA();
+        logLDA.setMessage(msg);
+        logLDA.train();
+        double l3 = logLDA.likelihood();
+        double e3 = Math.abs(l3 - (-201179.71361803956));
+        assertEquals("Deterministic Sampling", true, e3 < 1e-10);
     }
 
 }
