@@ -64,7 +64,6 @@ public class LDA extends TopicModel {
         TOTAL_TOKEN = 0;
         SAVED = 0;
         randomGNR = r;
-        iterationTimes = new long[MAX_ITER];
     }
 
     @Override
@@ -113,6 +112,7 @@ public class LDA extends TopicModel {
 
         TOPIC_NUM = (Integer) cmdArg.getParam("topics");
         MAX_ITER = (Integer) cmdArg.getParam("iters");
+        iterationTimes = new long[MAX_ITER];
         internalDocs = (List<Document>) cmdArg.getParam("docs");
         wordForwardIndex = (HashMap<String, Integer>) cmdArg.getParam("forwardIndex"); // get word forward index
 
