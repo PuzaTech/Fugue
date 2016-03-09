@@ -26,7 +26,7 @@ public class LDATest {
             }
 
             @Override
-            protected void sampleOneDoc(List<Document> docs, int index){
+            protected int sampleOneDoc(List<Document> docs, int index){
                 Document d = docs.get(index);
                 docTopicAssignment = docTopicAssignments.get(index);
                 docTopicBuffer = docTopicBuffers.get(index);
@@ -63,12 +63,12 @@ public class LDATest {
                     docTopicAssignment.set(pos, new_topic);
 
                     pos++;
-
                 }
+                return pos;
             }
 
             @Override
-            public void sampleOverDocs(List<Document> docs, Integer maxIter, Integer save){
+            public void sampleOverDocs(List<Document> docs, int maxIter, int save){
                 for (CURRENT_ITER = 0; CURRENT_ITER < maxIter; CURRENT_ITER++) {
                     LOGGER.info("Start to Iteration " + CURRENT_ITER);
                     for (int d = 0; d < docs.size(); d++) {

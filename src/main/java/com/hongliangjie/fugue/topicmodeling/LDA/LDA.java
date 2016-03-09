@@ -41,7 +41,7 @@ public class LDA extends TopicModel {
     protected LogUtils logAdd;
     protected MathExp mathExp;
     protected MathLog mathLog;
-    protected long[] iterationTimes;
+    protected double[] iterationTimes;
 
     protected int TOPIC_NUM;
     protected int MAX_ITER;
@@ -112,7 +112,7 @@ public class LDA extends TopicModel {
 
         TOPIC_NUM = (Integer) cmdArg.getParam("topics");
         MAX_ITER = (Integer) cmdArg.getParam("iters");
-        iterationTimes = new long[MAX_ITER];
+        iterationTimes = new double[MAX_ITER];
         internalDocs = (List<Document>) cmdArg.getParam("docs");
         wordForwardIndex = (HashMap<String, Integer>) cmdArg.getParam("forwardIndex"); // get word forward index
 
@@ -272,7 +272,7 @@ public class LDA extends TopicModel {
             }
         }
 
-        protected void sampleOneDoc(List<Document> docs, int index){
+        protected int sampleOneDoc(List<Document> docs, int index){
             Document d = docs.get(index);
             docTopicAssignment = docTopicAssignments.get(index);
             docTopicBuffer = docTopicBuffers.get(index);
@@ -296,17 +296,22 @@ public class LDA extends TopicModel {
                 docTopicAssignment.set(pos, new_topic);
 
                 pos++;
-
             }
+            return pos;
         }
 
-        public void sampleOverDocs(List<Document> docs, Integer maxIter, Integer save){
+        public void sampleOverDocs(List<Document> docs, int maxIter, int save){
+            int overall_pos = 0;
+            long overall_startTime = System.currentTimeMillis();
             for (CURRENT_ITER = 0; CURRENT_ITER < maxIter; CURRENT_ITER++) {
                 LOGGER.info("Start to Iteration " + CURRENT_ITER);
                 long startTime = System.currentTimeMillis();
                 int num_d = 0;
+                int total_pos = 0;
                 for (int d = 0; d < docs.size(); d++) {
-                    sampleOneDoc(docs, d);
+                    int doc_pos = sampleOneDoc(docs, d);
+                    overall_pos += doc_pos;
+                    total_pos += doc_pos;
                     num_d++;
                     if (num_d % 500 == 0)
                         LOGGER.info("Processed:" + num_d);
@@ -322,16 +327,20 @@ public class LDA extends TopicModel {
                     saveModel();
                 }
                 long endTime = System.currentTimeMillis();
-                long timeDifference = endTime - startTime;
-                LOGGER.info("Iteration Duration " + CURRENT_ITER + " " + Double.toString(timeDifference / 1000.0));
+                double timeDifference = (endTime - startTime) / 1000.0;
+                double tokenPerSeconds = (total_pos / 1000.0) / timeDifference;
+                LOGGER.info("Iteration Duration " + CURRENT_ITER + " " + Double.toString(timeDifference));
+                LOGGER.info("Tokens (per-K)/Seconds " + CURRENT_ITER + " " + Double.toString(tokenPerSeconds));
                 iterationTimes[CURRENT_ITER] = timeDifference;
             }
 
-            long averageTime = 0;
+            double averageTime = 0;
             for (int k = 0; k < maxIter; k++){
                 averageTime += iterationTimes[k];
             }
+            long overall_endTime = System.currentTimeMillis();
             LOGGER.info("Average Iteration Duration " +  Double.toString(averageTime / (double)maxIter));
+            LOGGER.info("Average Tokens (per-K)/Seconds " + Double.toString((overall_pos / 1000.0) /((overall_endTime - overall_startTime) / 1000.0)));
         }
     }
 
@@ -340,7 +349,7 @@ public class LDA extends TopicModel {
         LOGGER.info("Start to perform Gibbs Sampling");
         LOGGER.info("MAX_ITER:" + MAX_ITER);
         String samplerStr = cmdArg.getParam("LDASampler").toString();
-        Integer save = (Integer)cmdArg.getParam("saveModel");
+        int save = (Integer)cmdArg.getParam("saveModel");
 
         Sampler s = null;
         if (samplerStr != null) {
