@@ -211,6 +211,14 @@ public class LDA extends TopicModel {
         }
     }
 
+    protected class GibbsBinarySampling extends GibbsSampling{
+        public GibbsBinarySampling(){
+            dist = new MultinomialDistribution(TOPIC_NUM, mathLog, mathExp, "binary");
+            LOGGER.info("Gibbs Sampling: Binary");
+        }
+    }
+
+
     protected class GibbsSampling extends Sampler{
         public GibbsSampling(){
             dist = new MultinomialDistribution(TOPIC_NUM, mathLog, mathExp, "normal");
@@ -356,6 +364,9 @@ public class LDA extends TopicModel {
             }
             else if ("log".equals(samplerStr)){
                 s = new GibbsLogSampling();
+            }
+            else if ("binary".equals(samplerStr)){
+                s = new GibbsBinarySampling();
             }
             else{
                 s = new GibbsSampling();
