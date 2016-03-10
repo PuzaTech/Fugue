@@ -84,10 +84,6 @@ public class MultinomialDistributionTest {
             assertEquals("Binary Equal to Linear", true, h2[k] == hBin[k]);
         }
 
-        System.out.println(theta.getComparisons());
-        System.out.println(thetaBin.getComparisons());
-
-
         double e1 = Math.abs(h2[0]/(double)N - p[0]);
         double e2 = Math.abs(h2[1]/(double)N - p[1]);
         double e3 = Math.abs(h2[2]/(double)N - p[2]);
@@ -120,9 +116,5 @@ public class MultinomialDistributionTest {
             assertEquals("Testing Log Sampling Accuracy", i1, i2);
             assertEquals("Testing Log Sampling Accuracy", i1, i3);
         }
-        System.out.println(theta1.getComparisons());
-        System.out.println(theta2.getComparisons());
-        System.out.println(theta3.getComparisons());
-
     }
 }

@@ -15,11 +15,7 @@ public class MultinomialDistribution extends DiscreteDistribution {
     protected MathExp mathExp;
     protected LogUtils logU;
     protected Sampler s;
-    protected int comparisons = 0;
 
-    public int getComparisons(){
-        return comparisons;
-    }
 
     public MultinomialDistribution(int K){
         this(K, new MathLog(), new MathExp(), "normal");
@@ -57,7 +53,6 @@ public class MultinomialDistribution extends DiscreteDistribution {
             int upper = _accumulatedWeights.length - 1;
             while (lower <= upper){
                 int mid = lower + (upper - lower) / 2;
-                comparisons += 1;
                 if((_accumulatedWeights[mid] - u) > 0){
                     upper = mid - 1;
                 }
@@ -78,7 +73,6 @@ public class MultinomialDistribution extends DiscreteDistribution {
 
             int index = -1;
             for (index = 0; index < _K; index++) {
-                comparisons += 1;
                 if (u < _accumulatedWeights[index])
                     break;
             }
@@ -107,7 +101,6 @@ public class MultinomialDistribution extends DiscreteDistribution {
             double u = mathLog.compute(uniformRV) + _accumulatedWeights[_K - 1];
             int index = -1;
             for (index = 0; index < _K; index++){
-                comparisons += 1;
                 if (u < _accumulatedWeights[index]){
                     break;
                 }
