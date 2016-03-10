@@ -1,6 +1,7 @@
 package com.hongliangjie.fugue.topicmodeling.lda;
 
 import com.hongliangjie.fugue.Message;
+import com.hongliangjie.fugue.distributions.MultinomialDistribution;
 import com.hongliangjie.fugue.io.DataReader;
 import com.hongliangjie.fugue.serialization.Document;
 import com.hongliangjie.fugue.serialization.Feature;
@@ -17,6 +18,7 @@ import static org.junit.Assert.assertEquals;
 public class LDATest {
 
     private class DeepTestLDA extends LDA{
+
 
         protected class TestProcesser extends ProcessDocuments{
             protected Sampler sampler2;
@@ -91,7 +93,7 @@ public class LDATest {
             LOGGER.info("Start to perform Gibbs Sampling");
             LOGGER.info("MAX_ITER:" + MAX_ITER);
 
-            Sampler g1 = new GibbsSampling();
+            Sampler g1 = new GibbsBinarySampling();
             Sampler g2 = new GibbsLogSampling();
             ProcessDocuments p = new TestProcesser(g1,g2);
             g1.setProcessor(p);
