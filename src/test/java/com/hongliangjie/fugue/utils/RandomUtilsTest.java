@@ -11,7 +11,7 @@ public class RandomUtilsTest {
 
     @Test
     public void testNativeRandom() throws Exception {
-        double r1 = new RandomUtils(0).nextDouble();
+        double r1 = new RandomUtils().nextDouble();
         assertEquals("Testing Random", true, (r1 >= 0.0) && (r1 <= 1.0));
         double d1 = new RandomUtils(1).nextDouble();
         double e1 = Math.abs(d1 - 0.7322219172863654);

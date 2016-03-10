@@ -14,14 +14,14 @@ public class MultinomialDistributionTest {
 
     @Test
     public void testSet() throws Exception {
-        MultinomialDistribution theta = new MultinomialDistribution(3, new MathLog(0), new MathExp(0), "normal");
+        MultinomialDistribution theta = new MultinomialDistribution(3);
         double[] p = new double[3];
         p[0] = 0.2; p[1] = 0.5; p[2] = 0.3;
         double[] accu_p = theta.setProbabilities(p);
         assertEquals("Testing Accumulate Distribution:", true, (accu_p[2] >= accu_p[1]) && (accu_p[1] >= accu_p[0]));
 
-        MultinomialDistribution theta1 = new MultinomialDistribution(3, new MathLog(0), new MathExp(0), "normal");
-        MultinomialDistribution theta2 = new MultinomialDistribution(3, new MathLog(0), new MathExp(0), "log");
+        MultinomialDistribution theta1 = new MultinomialDistribution(3, new MathLog(0), new MathExp(1), "normal");
+        MultinomialDistribution theta2 = new MultinomialDistribution(3, new MathLog(1), new MathExp(0), "log");
         double[] p1 = new double[3];
         p1[0] = 0.2; p1[1] = 0.5; p1[2] = 0.3;
         double[] logp = new double[3];
