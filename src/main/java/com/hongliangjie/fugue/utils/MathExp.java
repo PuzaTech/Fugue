@@ -34,6 +34,10 @@ public class MathExp {
         }
     }
 
+    public MathExp(){
+        this(0);
+    }
+
     public MathExp(int type){
         if (type == 0){
             mathExp = new NativeExp();

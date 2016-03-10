@@ -38,7 +38,6 @@ public class LDA extends TopicModel {
     protected double alphaSum;
     protected Message cmdArg;
     protected RandomUtils randomGNR;
-    protected LogUtils logAdd;
     protected MathExp mathExp;
     protected MathLog mathLog;
     protected double[] iterationTimes;
@@ -99,8 +98,6 @@ public class LDA extends TopicModel {
         int logInt = (Integer)cmdArg.getParam("log");
         mathLog = new MathLog(logInt);
         LOGGER.info("Math Log Function:" + logInt);
-
-        logAdd = new LogUtils(mathLog, mathExp);
     }
 
     @Override
@@ -216,7 +213,7 @@ public class LDA extends TopicModel {
 
     protected class GibbsSampling extends Sampler{
         public GibbsSampling(){
-            dist = new MultinomialDistribution(TOPIC_NUM, mathLog);
+            dist = new MultinomialDistribution(TOPIC_NUM, mathLog, mathExp, "normal");
             LOGGER.info("Gibbs Sampling: Normal");
         }
 
@@ -230,15 +227,15 @@ public class LDA extends TopicModel {
 
     protected class GibbsLogSampling extends Sampler{
         public GibbsLogSampling(){
-            dist = new MultinomialDistribution(TOPIC_NUM, mathLog);
+            dist = new MultinomialDistribution(TOPIC_NUM, mathLog, mathExp, "log");
             LOGGER.info("Gibbs Sampling: Log");
         }
 
         @Override
         public Integer draw(Integer feature_index, double randomRV){
             processor.computeLogProbabilities(feature_index);
-            dist.setLogProbabilities(sample_buffer, logAdd);
-            return dist.logSample(randomRV);
+            dist.setProbabilities(sample_buffer);
+            return dist.sample(randomRV);
         }
     }
 

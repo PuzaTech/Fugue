@@ -34,6 +34,10 @@ public class MathLog {
         }
     }
 
+    public MathLog(){
+        this(0);
+    }
+
     public MathLog(int type){
         if (type == 0){
             mathLog = new NativeLog();
