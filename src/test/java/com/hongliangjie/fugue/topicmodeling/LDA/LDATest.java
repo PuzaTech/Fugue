@@ -1,7 +1,6 @@
 package com.hongliangjie.fugue.topicmodeling.lda;
 
 import com.hongliangjie.fugue.Message;
-import com.hongliangjie.fugue.distributions.MultinomialDistribution;
 import com.hongliangjie.fugue.io.DataReader;
 import com.hongliangjie.fugue.serialization.Document;
 import com.hongliangjie.fugue.serialization.Feature;

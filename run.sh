@@ -9,7 +9,7 @@ function train-ap {
         -iters 1000 \
         -modelFile examples/models/model.ap.json \
         -topk 100000 \
-        -LDASampler normal \
+        -LDASampler binary \
         -random deterministic
 }
 
