@@ -73,7 +73,7 @@ public class MultinomialDistributionTest {
         assertEquals("Testing Extreme Samples 1:", 0, h1[1]);
         assertEquals("Testing Extreme Samples 2:", 1000, h1[2]);
 
-        p[0] = 0.2; p[1] = 0.7; p[2] = 0.1;
+        p[0] = 0.33; p[1] = 0.33; p[2] = 0.34;
         theta.setProbabilities(p);
         thetaBin.setProbabilities(p);
 
@@ -83,6 +83,9 @@ public class MultinomialDistributionTest {
         for(int k = 0; k < h2.length; k ++){
             assertEquals("Binary Equal to Linear", true, h2[k] == hBin[k]);
         }
+
+        System.out.println(theta.getComparisons());
+        System.out.println(thetaBin.getComparisons());
 
 
         double e1 = Math.abs(h2[0]/(double)N - p[0]);
@@ -117,6 +120,9 @@ public class MultinomialDistributionTest {
             assertEquals("Testing Log Sampling Accuracy", i1, i2);
             assertEquals("Testing Log Sampling Accuracy", i1, i3);
         }
+        System.out.println(theta1.getComparisons());
+        System.out.println(theta2.getComparisons());
+        System.out.println(theta3.getComparisons());
 
     }
 }
