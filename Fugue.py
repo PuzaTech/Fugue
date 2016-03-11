@@ -2,7 +2,7 @@ import argparse
 import sys
 import subprocess
 
-class ProfileParam:
+class ProfileParam(object):
     def __init__(self):
         self._inputFile = 'input.db'
         self._modelFile = 'model.db'
@@ -33,7 +33,7 @@ class ProfileAP(ProfileParam, object):
         self._random = 'deterministic'
 
 
-class cmdBuilder:
+class cmdBuilder(object):
     def __init__(self, profile):
         self._profile = profile
         self._other_params = []
