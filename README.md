@@ -1,6 +1,7 @@
 # Fugue
 [![Build Status](https://travis-ci.org/PuzaTech/Fugue.svg?branch=master)](https://travis-ci.org/PuzaTech/Fugue)
 [![codecov.io](https://codecov.io/github/PuzaTech/Fugue/coverage.svg?branch=master)](https://codecov.io/github/PuzaTech/Fugue?branch=master)
+[![Dependency Status](https://www.versioneye.com/user/projects/56e25b13863809000a47c28a/badge.svg?style=flat)](https://www.versioneye.com/user/projects/56e25b13863809000a47c28a)
 [![Code Climate](https://codeclimate.com/github/PuzaTech/Fugue/badges/gpa.svg)](https://codeclimate.com/github/PuzaTech/Fugue)
 [![Codacy Badge](https://api.codacy.com/project/badge/grade/79ec17fe542e4f6792a522c7a9c374b4)](https://www.codacy.com/app/hongliangjie/Fugue)
 [![todofy badge](https://todofy.org/b/PuzaTech/Fugue)](https://todofy.org/r/PuzaTech/Fugue)
