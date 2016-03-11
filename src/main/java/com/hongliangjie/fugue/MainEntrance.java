@@ -26,6 +26,7 @@ public class MainEntrance {
         Option randomOption = Option.builder().longOpt("random").desc("the random number generator").hasArg().argName("random").build();
         Option expOption = Option.builder().longOpt("exp").desc("the math exp function").hasArg().argName("exp").build();
         Option logOption = Option.builder().longOpt("log").desc("the math log function").hasArg().argName("log").build();
+        Option saveModelOption = Option.builder().longOpt("saveModel").desc("automatically save models").hasArg().argName("saveModel").build();
 
         Option helpOption = new Option("help", "print out help message");
 
@@ -40,6 +41,7 @@ public class MainEntrance {
         options.addOption(randomOption);
         options.addOption(expOption);
         options.addOption(logOption);
+        options.addOption(saveModelOption);
 
         return options;
     }
@@ -105,11 +107,17 @@ public class MainEntrance {
                 else {
                     cmd.setParam("exp", 0);
                 }
+
+                if (line.hasOption("saveModel")){
+                    cmd.setParam("saveModel", Integer.parseInt(line.getOptionValue("saveModel")));
+                }
+                else {
+                    cmd.setParam("saveModel", 1);
+                }
                 LOGGER.info("[CMD] LDA Sampler:" + cmd.getParam("LDASampler").toString());
                 LOGGER.info("[CMD] Random Number Generator:" + cmd.getParam("random").toString());
                 LOGGER.info("[CMD] Math Log:" + cmd.getParam("log").toString());
                 LOGGER.info("[CMD] Math Exp:" + cmd.getParam("exp").toString());
-                cmd.setParam("saveModel", 1);
             }
         } catch (ParseException exp) {
             System.err.println("Parsing failed.  Reason: " + exp.getMessage());
