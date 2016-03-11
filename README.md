@@ -27,13 +27,12 @@ The design of the package is to limit the prerequesite packages and therefore yo
 
 ### How to Compile
 ```sh
-$ ./run.sh build
+$ python Fugue.py
 ```
 
 ### Run AP example
 ```sh
-$ ./run.sh train-ap
-$ ./run.sh topics-ap
+$ python Fugue.py --task train
 ```
 
 ### Admin
