@@ -17,11 +17,14 @@ import static org.junit.Assert.assertEquals;
 public class DataReaderTest {
 
     @Test
+    @SuppressWarnings("unchecked")
     public void testRead() throws Exception {
         DataReader r = new DataReader();
         Message msg = new Message();
         URL testFileURL = this.getClass().getClassLoader().getResource("ap-test.json");
-        msg.setParam("inputFile", testFileURL.getPath());
+        if (testFileURL != null) {
+            msg.setParam("inputFile", testFileURL.getPath());
+        }
         msg = r.read(msg);
         // check document
         List<Document> docs = (List<Document>)msg.getParam("docs");
