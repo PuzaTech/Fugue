@@ -38,7 +38,8 @@ class cmdBuilder(object):
         self._profile = profile
         self._other_params = []
 
-    def execute(self, all_args):
+    @classmethod
+    def execute(cls, all_args):
         fugue = subprocess.Popen(all_args, stdout = subprocess.PIPE, stderr = subprocess.STDOUT)
         while True:
             nextline = fugue.stdout.readline()
@@ -62,7 +63,7 @@ class cmdBuilder(object):
         all_args.extend(self._profile.getParams())
         cmdStr =  ' '.join(all_args)
         print cmdStr
-        self.execute(all_args)
+        cmdBuilder.execute(all_args)
 
 class cmdCompile(cmdBuilder, object):
     def __init__(self):
@@ -73,12 +74,12 @@ class cmdCompile(cmdBuilder, object):
         build_cmd.append('gradle')
         build_cmd.append('build')
         print '==================== Build ==================='
-        self.execute(build_cmd)
+        cmdBuilder.execute(build_cmd)
         build_cmd = []
         build_cmd.append('gradle')
         build_cmd.append('fatJar')
         print '==================== Jar ==================='
-        self.execute(build_cmd)
+        cmdBuilder.execute(build_cmd)
 
 
 if __name__ == '__main__':
