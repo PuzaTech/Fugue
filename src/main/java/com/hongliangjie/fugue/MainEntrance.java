@@ -12,7 +12,7 @@ public class MainEntrance {
 
     private static final Logger LOGGER = LogManager.getLogger("FUGUE-TOPICMODELING");
 
-    private static Options createOptions(){
+    protected static Options createOptions(){
 
         Options options = new Options();
 
@@ -46,7 +46,7 @@ public class MainEntrance {
         return options;
     }
 
-    private static Message parseOptions(Options options, String[] args){
+    protected static Message parseOptions(Options options, String[] args){
         // create the parser
         Message cmd = new Message();
         CommandLineParser parser = new DefaultParser();
@@ -60,27 +60,39 @@ public class MainEntrance {
             } else {
                 if (line.hasOption("inputFile")) {
                     cmd.setParam("inputFile", line.getOptionValue("inputFile"));
-                    LOGGER.info("INPUT FILE:" + cmd.getParam("inputFile").toString());
+                }
+                else{
+                    cmd.setParam("inputFile", "NULL");
                 }
                 if (line.hasOption("modelFile")) {
                     cmd.setParam("modelFile", line.getOptionValue("modelFile"));
-                    LOGGER.info("MODEL FILE:" + cmd.getParam("modelFile").toString());
+                }
+                else{
+                    cmd.setParam("modelFile", "NULL");
                 }
                 if (line.hasOption("task")) {
                     cmd.setParam("task", line.getOptionValue("task"));
-                    LOGGER.info("TASK:" + cmd.getParam("task").toString());
+                }
+                else{
+                    cmd.setParam("task", "NULL");
                 }
                 if (line.hasOption("topics")) {
                     cmd.setParam("topics", Integer.parseInt(line.getOptionValue("topics")));
-                    LOGGER.info("TOPICS:" + Integer.toString((Integer)cmd.getParam("topics")));
+                }
+                else{
+                    cmd.setParam("topics", 100);
                 }
                 if (line.hasOption("iters")) {
                     cmd.setParam("iters", Integer.parseInt(line.getOptionValue("iters")));
-                    LOGGER.info("ITERS:" + Integer.toString((Integer)cmd.getParam("iters")));
+                }
+                else{
+                    cmd.setParam("iters", 1000);
                 }
                 if (line.hasOption("topk")) {
                     cmd.setParam("topk", Integer.parseInt(line.getOptionValue("topk")));
-                    LOGGER.info("TOPK:" + Integer.toString((Integer)cmd.getParam("topk")));
+                }
+                else{
+                    cmd.setParam("topk", 100000);
                 }
                 if (line.hasOption("LDASampler")) {
                     cmd.setParam("LDASampler", line.getOptionValue("LDASampler"));
@@ -114,6 +126,13 @@ public class MainEntrance {
                 else {
                     cmd.setParam("saveModel", 1);
                 }
+
+                LOGGER.info("[CMD] INPUT FILE:" + cmd.getParam("inputFile").toString());
+                LOGGER.info("[CMD] MODEL FILE:" + cmd.getParam("modelFile").toString());
+                LOGGER.info("[CMD] TASK:" + cmd.getParam("task").toString());
+                LOGGER.info("[CMD] TOPICS:" + Integer.toString((Integer)cmd.getParam("topics")));
+                LOGGER.info("[CMD] ITERS:" + Integer.toString((Integer)cmd.getParam("iters")));
+                LOGGER.info("[CMD] TOPK:" + Integer.toString((Integer)cmd.getParam("topk")));
                 LOGGER.info("[CMD] LDA Sampler:" + cmd.getParam("LDASampler").toString());
                 LOGGER.info("[CMD] Random Number Generator:" + cmd.getParam("random").toString());
                 LOGGER.info("[CMD] Math Log:" + cmd.getParam("log").toString());
@@ -132,12 +151,12 @@ public class MainEntrance {
 
         Options options = MainEntrance.createOptions();
         Message cmd = MainEntrance.parseOptions(options, args);
-        if (cmd != null) {
-            TopicModelDriver m = new TopicModelDriver(cmd);
-            m.performTask();
+        if ("NULL".equals(cmd.getParam("task"))) {
+            LOGGER.info("Failed.");
         }
         else{
-            LOGGER.info("Failed.");
+            TopicModelDriver m = new TopicModelDriver(cmd);
+            m.performTask();
         }
 
         LOGGER.info("Complete Application");
