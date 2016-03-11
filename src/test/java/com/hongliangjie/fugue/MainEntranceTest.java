@@ -62,5 +62,6 @@ public class MainEntranceTest {
         assertEquals("log", true, cmdMsg.getParam("log") != null);
         assertEquals("saveModel", true, cmdMsg.getParam("saveModel") != null);
 
+        MainEntrance.main(null);
     }
 }
