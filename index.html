@@ -33,8 +33,8 @@
 
 <p><a href="https://travis-ci.org/PuzaTech/Fugue"><img src="https://travis-ci.org/PuzaTech/Fugue.svg?branch=master" alt="Build Status"></a>
 <a href="https://codecov.io/github/PuzaTech/Fugue?branch=master"><img src="https://codecov.io/github/PuzaTech/Fugue/coverage.svg?branch=master" alt="codecov.io"></a>
+<a href="https://www.versioneye.com/user/projects/56e25b13863809000a47c28a"><img src="https://www.versioneye.com/user/projects/56e25b13863809000a47c28a/badge.svg?style=flat" alt="Dependency Status"></a>
 <a href="https://codeclimate.com/github/PuzaTech/Fugue"><img src="https://codeclimate.com/github/PuzaTech/Fugue/badges/gpa.svg" alt="Code Climate"></a>
-<a href="https://www.versioneye.com/user/projects/56da10fcbfdb33003da61a97"><img src="https://www.versioneye.com/user/projects/56da10fcbfdb33003da61a97/badge.svg?style=flat" alt="Dependency Status"></a>
 <a href="https://www.codacy.com/app/hongliangjie/Fugue"><img src="https://api.codacy.com/project/badge/grade/79ec17fe542e4f6792a522c7a9c374b4" alt="Codacy Badge"></a>
 <a href="https://todofy.org/r/PuzaTech/Fugue"><img src="https://todofy.org/b/PuzaTech/Fugue" alt="todofy badge"></a>
 <a href="./LICENSE"><img src="http://dmlc.github.io/img/apache2.svg" alt="GitHub license"></a></p>
@@ -48,8 +48,13 @@
 <a id="modelsalgorithms" class="anchor" href="#modelsalgorithms" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Models/Algorithms</h3>
 
 <ul>
-<li>latent Dirichlet allocation (LDA) with collapsed Gibbs sampling</li>
+<li>Latent Dirichlet allocation (LDA) with collapsed Gibbs sampling</li>
 </ul>
+
+<h3>
+<a id="roadmap" class="anchor" href="#roadmap" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Roadmap</h3>
+
+<p>We are expecting v1.0 in Mid 2016. See <a href="https://github.com/PuzaTech/Fugue/wiki/Fugue-1.0-Roadmap">Detailed Plan</a>.</p>
 
 <h3>
 <a id="prerequisites" class="anchor" href="#prerequisites" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Prerequisites</h3>
@@ -72,18 +77,12 @@
 <h3>
 <a id="how-to-compile" class="anchor" href="#how-to-compile" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>How to Compile</h3>
 
-<div class="highlight highlight-source-shell"><pre>$ ./run.sh build</pre></div>
+<div class="highlight highlight-source-shell"><pre>$ python Fugue.py</pre></div>
 
 <h3>
 <a id="run-ap-example" class="anchor" href="#run-ap-example" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Run AP example</h3>
 
-<div class="highlight highlight-source-shell"><pre>$ ./run.sh train-ap
-$ ./run.sh topics-ap</pre></div>
-
-<h3>
-<a id="admin" class="anchor" href="#admin" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Admin</h3>
-
-<p><a href="https://zube.io/boards/52705186">https://zube.io/boards/52705186</a></p>
+<div class="highlight highlight-source-shell"><pre>$ python Fugue.py --task train</pre></div>
       </section>
       <footer>
         <p>This project is maintained by <a href="https://github.com/PuzaTech">PuzaTech</a></p>
