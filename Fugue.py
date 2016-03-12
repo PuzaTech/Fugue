@@ -24,14 +24,23 @@ class ProfileParam(object):
             return_args.append(str(value))
         return return_args
 
-class ProfileAP(ProfileParam, object):
+class ProfileAPTest(ProfileParam, object):
     def __init__(self):
-        super(ProfileAP, self).__init__()
+        super(ProfileAPTest, self).__init__()
         self._inputFile = 'examples/data/ap.json'
         self._modelFile = 'examples/models/model.ap.json'
         self._LDASampler = 'binary'
         self._random = 'deterministic'
+        self._task = 'test'
 
+class ProfileAPTrain(ProfileParam, object):
+    def __init__(self):
+        super(ProfileAPTrain, self).__init__()
+        self._inputFile = 'examples/data/ap.json'
+        self._modelFile = 'examples/models/model.ap.json'
+        self._LDASampler = 'binary'
+        self._random = 'deterministic'
+        self._task = 'train'
 
 class cmdBuilder(object):
     def __init__(self, profile):
@@ -87,10 +96,11 @@ if __name__ == '__main__':
     parser.add_argument('--profile', help = 'the profile to launch', default = 'ProfileAP')
     parser.add_argument('--task', help = 'the task to perform', default = 'build')
     args = parser.parse_args()
+    get_class = lambda x: globals()[x]
     if args.task is not None and args.task != '':
-        if args.task == 'train':
+        if args.task == 'train' or args.task == 'test':
             if args.profile is not None and args.profile != '':
-                get_class = lambda x: globals()[x]
+                print args.profile
                 runProfile = get_class(args.profile)()
                 command = cmdBuilder(runProfile)
         elif args.task == 'build':
