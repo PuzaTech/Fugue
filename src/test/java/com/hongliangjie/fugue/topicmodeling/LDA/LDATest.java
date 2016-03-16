@@ -55,11 +55,29 @@ public class LDATest {
         assertEquals("Equal Index Size", true, wordsForwardIndex.size() == wordsInvertedIndex.size());
     }
 
-
     @Test
-    public void testLikelihood() throws Exception {
-
+    public void testTest(){
+        try {
+            Message msg = prepareDocuments();
+            URL testFileURL = this.getClass().getClassLoader().getResource("model.ap.json");
+            String testFileName = testFileURL.getPath();
+            msg.setParam("modelFile", testFileName);
+            msg.setParam("multipleModels", 0);
+            msg.setParam("topics", 10);
+            msg.setParam("iters", 50);
+            msg.setParam("saveModel", 0);
+            msg.setParam("random", "native");
+            msg.setParam("exp", 1);
+            msg.setParam("log", 1);
+            LDA lda = new LDA();
+            lda.setMessage(msg);
+            lda.test();
+        }
+        catch (Exception e){
+            assertEquals("LDA test failed.", true, false);
+        }
     }
+
 
     private class DeepTestLDA extends LDA{
 
@@ -201,7 +219,7 @@ public class LDATest {
         Message msg = new Message();
         URL testFileURL = this.getClass().getClassLoader().getResource("ap-test.json");
         msg.setParam("inputFile", testFileURL.getPath());
-        msg.setParam("topk", 100);
+        msg.setParam("topk", 100000);
         msg.setParam("topics", 10);
         msg.setParam("iters", 50);
         msg.setParam("saveModel", 0);
