@@ -6,6 +6,7 @@ import com.hongliangjie.fugue.serialization.Document;
 import com.hongliangjie.fugue.serialization.Feature;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.net.URL;
 import java.util.List;
 
@@ -15,6 +16,31 @@ import static org.junit.Assert.assertEquals;
  * Created by liangjie on 3/6/16.
  */
 public class LDATest {
+
+    @Test
+    public void testLoadModel(){
+        URL testFileURL = this.getClass().getClassLoader().getResource("model.ap.json");
+        String testFileName = testFileURL.getPath();
+        Message msg = new Message();
+        msg.setParam("modelFile", testFileName);
+        msg.setParam("multipleModels", 0);
+        msg.setParam("topics", 10);
+        msg.setParam("iters", 50);
+        msg.setParam("saveModel", 0);
+        msg.setParam("random", "native");
+        msg.setParam("exp", 1);
+        msg.setParam("log", 1);
+        LDA lda = new LDA();
+        lda.setMessage(msg);
+        try {
+            lda.loadModel();
+            assertEquals("Load Finished", true, true);
+        }
+        catch (IOException e){
+            assertEquals("Load Finished Failed", true, false);
+        }
+
+    }
 
     private class DeepTestLDA extends LDA{
 
@@ -27,29 +53,29 @@ public class LDATest {
             }
 
             @Override
-            protected int sampleOneDoc(List<Document> docs, int index){
+            protected int sampleOneDoc(List<Document> docs, int index, int modelID){
                 Document d = docs.get(index);
-                docTopicAssignment = docTopicAssignments.get(index);
-                docTopicBuffer = docTopicBuffers.get(index);
+                docTopicAssignment = modelPools.get(modelID).docTopicAssignments.get(index);
+                docTopicBuffer = modelPools.get(modelID).docTopicBuffers.get(index);
                 int pos = 0;
 
                 for (Feature f : d.getFeatures()) {
-                    String feature_name = f.getFeatureName();
-                    Integer feature_index = wordForwardIndex.get(feature_name);
+                    String featureName = f.getFeatureName();
+                    Integer featureIndex = wordForwardIndex.get(featureName);
 
                     int current_topic = docTopicAssignment.get(pos);
                     docTopicBuffer[current_topic]--;
-                    wordTopicCounts.get(feature_index)[current_topic]--;
-                    topicCounts[current_topic]--;
+                    modelPools.get(modelID).wordTopicCounts.get(featureIndex)[current_topic]--;
+                    modelPools.get(modelID).topicCounts[current_topic]--;
 
                     double randomRV = randomGNR.nextDouble();
-                    int new_topic = sampler.draw(feature_index, randomRV);
+                    int new_topic = sampler.draw(modelID, featureIndex, randomRV);
                     double[] backupP = new double[TOPIC_NUM];
                     for(int k = 0; k < TOPIC_NUM; k++){
                         backupP[k] = sample_buffer[k];
                     }
 
-                    int log_topic = sampler2.draw(feature_index, randomRV);
+                    int log_topic = sampler2.draw(modelID, featureIndex, randomRV);
 
                     for(int k = 0; k < TOPIC_NUM; k++){
                         double e = Math.abs(Math.exp(sample_buffer[k]) - backupP[k]);
@@ -59,8 +85,8 @@ public class LDATest {
                     assertEquals("normal sampling is not consistent with log sampling", new_topic, log_topic);
 
                     docTopicBuffer[new_topic]++;
-                    wordTopicCounts.get(feature_index)[new_topic]++;
-                    topicCounts[new_topic]++;
+                    modelPools.get(modelID).wordTopicCounts.get(featureIndex)[new_topic]++;
+                    modelPools.get(modelID).topicCounts[new_topic]++;
                     docTopicAssignment.set(pos, new_topic);
 
                     pos++;
@@ -69,16 +95,16 @@ public class LDATest {
             }
 
             @Override
-            public void sampleOverDocs(List<Document> docs, int maxIter, int save){
+            public void sampleOverDocs(int modelID, List<Document> docs, int maxIter, int save){
                 for (CURRENT_ITER = 0; CURRENT_ITER < maxIter; CURRENT_ITER++) {
                     LOGGER.info("Start to Iteration " + CURRENT_ITER);
                     for (int d = 0; d < docs.size(); d++) {
-                        sampleOneDoc(docs, d);
+                        sampleOneDoc(docs, d, modelID);
                     }
                     LOGGER.info("Finished sampling.");
                     LOGGER.info("Finished Iteration " + CURRENT_ITER);
 
-                    double likelihood = likelihood();
+                    double likelihood = likelihood(modelID);
                     LOGGER.info("Iteration " + CURRENT_ITER + " Likelihood:" + Double.toString(likelihood));
                     countsCheck();
                 }
@@ -97,22 +123,22 @@ public class LDATest {
             ProcessDocuments p = new TestProcesser(g1,g2);
             g1.setProcessor(p);
             g2.setProcessor(p);
-            p.sampleOverDocs(internalDocs, MAX_ITER, 0);
+            p.sampleOverDocs(0, internalDocs, MAX_ITER, 0);
         }
 
         public void countsCheck() {
             int topic_sum = 0;
 
             for (int k = 0; k < TOPIC_NUM; k++) {
-                topic_sum += topicCounts[k];
+                topic_sum += modelPools.get(0).topicCounts[k];
             }
 
             assertEquals("topicCounts are not consistent with total token:", topic_sum, TOTAL_TOKEN);
 
             int term_topic_sum = 0;
             int[] topic_sums = new int[TOPIC_NUM];
-            for (int v = 0; v < wordTopicCounts.size(); v++) {
-                int[] c = wordTopicCounts.get(v);
+            for (int v = 0; v < modelPools.get(0).wordTopicCounts.size(); v++) {
+                int[] c = modelPools.get(0).wordTopicCounts.get(v);
                 for (int k = 0; k < c.length; k++) {
                     term_topic_sum += c[k];
                     topic_sums[k] += c[k];
@@ -123,13 +149,13 @@ public class LDATest {
 
 
             for (int k = 0; k < TOPIC_NUM; k++) {
-                assertEquals("topic_sums are not consistent with topicCounts:" + k, topic_sums[k], topicCounts[k]);
+                assertEquals("topic_sums are not consistent with topicCounts:" + k, topic_sums[k], modelPools.get(0).topicCounts[k]);
             }
 
             int[] document_agg_topics = new int[TOPIC_NUM];
             for (int d = 0; d < internalDocs.size(); d++) {
-                List<Integer> docTopicAssignment = docTopicAssignments.get(d);
-                int[] docTopicBuffer = docTopicBuffers.get(d);
+                List<Integer> docTopicAssignment = modelPools.get(0).docTopicAssignments.get(d);
+                int[] docTopicBuffer = modelPools.get(0).docTopicBuffers.get(d);
                 int pos = internalDocs.get(d).getFeatures().size();
                 int total_topic_sum = 0;
                 for (int k = 0; k < TOPIC_NUM; k++) {
@@ -145,7 +171,7 @@ public class LDATest {
             }
 
             for (int k = 0; k < TOPIC_NUM; k++) {
-                assertEquals("The aggregated topic assignment is not consistent with topicCounts:" + k, document_agg_topics[k], topicCounts[k]);
+                assertEquals("The aggregated topic assignment is not consistent with topicCounts:" + k, document_agg_topics[k], modelPools.get(0).topicCounts[k]);
             }
             LOGGER.info("Counts Verifized,");
         }
@@ -184,20 +210,20 @@ public class LDATest {
         LDA normalLDA1 = new LDA();
         normalLDA1.setMessage(msg);
         normalLDA1.train();
-        double l1 = normalLDA1.likelihood();
+        double l1 = normalLDA1.likelihood(0);
         double e1 = Math.abs(l1 - (-201179.71361803956));
         assertEquals("Deterministic Sampling", true, e1 < 1e-10);
         LDA normalLDA2 = new LDA();
         normalLDA2.setMessage(msg);
         normalLDA2.train();
-        double l2 = normalLDA2.likelihood();
+        double l2 = normalLDA2.likelihood(0);
         double e2 = Math.abs(l2 - (-201179.71361803956));
         assertEquals("Deterministic Sampling", true, e2 < 1e-10);
         msg.setParam("LDASampler", "log");
         LDA logLDA = new LDA();
         logLDA.setMessage(msg);
         logLDA.train();
-        double l3 = logLDA.likelihood();
+        double l3 = logLDA.likelihood(0);
         double e3 = Math.abs(l3 - (-201179.71361803956));
         assertEquals("Deterministic Sampling", true, e3 < 1e-10);
     }

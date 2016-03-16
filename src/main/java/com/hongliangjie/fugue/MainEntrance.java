@@ -46,9 +46,26 @@ public class MainEntrance {
         return options;
     }
 
-    protected static Message parseOptions(Options options, String[] args){
-        // create the parser
+    protected static Message defaultMessage(){
         Message cmd = new Message();
+        cmd.setParam("inputFile", "NULL");
+        cmd.setParam("modelFile", "NULL");
+        cmd.setParam("task", "NULL");
+        cmd.setParam("topics", "100");
+        cmd.setParam("iters", "1000");
+        cmd.setParam("topk", "100000");
+        cmd.setParam("LDASampler", "normal");
+        cmd.setParam("random", "native");
+        cmd.setParam("log", "0");
+        cmd.setParam("exp", "0");
+        cmd.setParam("saveModel", "1");
+        cmd.setParam("multipleModels", "0");
+        return cmd;
+    }
+
+    protected static Message parseOptions(Options options, String[] args) {
+        // create the parser
+        Message cmd = defaultMessage();
         CommandLineParser parser = new DefaultParser();
         try {
             // parse the command line arguments
@@ -58,81 +75,17 @@ public class MainEntrance {
                 formatter.printHelp("fugue-topicmodeling", options);
                 cmd = null;
             } else {
-                if (line.hasOption("inputFile")) {
-                    cmd.setParam("inputFile", line.getOptionValue("inputFile"));
-                }
-                else{
-                    cmd.setParam("inputFile", "NULL");
-                }
-                if (line.hasOption("modelFile")) {
-                    cmd.setParam("modelFile", line.getOptionValue("modelFile"));
-                }
-                else{
-                    cmd.setParam("modelFile", "NULL");
-                }
-                if (line.hasOption("task")) {
-                    cmd.setParam("task", line.getOptionValue("task"));
-                }
-                else{
-                    cmd.setParam("task", "NULL");
-                }
-                if (line.hasOption("topics")) {
-                    cmd.setParam("topics", Integer.parseInt(line.getOptionValue("topics")));
-                }
-                else{
-                    cmd.setParam("topics", 100);
-                }
-                if (line.hasOption("iters")) {
-                    cmd.setParam("iters", Integer.parseInt(line.getOptionValue("iters")));
-                }
-                else{
-                    cmd.setParam("iters", 1000);
-                }
-                if (line.hasOption("topk")) {
-                    cmd.setParam("topk", Integer.parseInt(line.getOptionValue("topk")));
-                }
-                else{
-                    cmd.setParam("topk", 100000);
-                }
-                if (line.hasOption("LDASampler")) {
-                    cmd.setParam("LDASampler", line.getOptionValue("LDASampler"));
-                }
-                else{
-                    cmd.setParam("LDASampler", "normal");
-                }
-                if (line.hasOption("random")) {
-                    cmd.setParam("random", line.getOptionValue("random"));
-                }
-                else{
-                    cmd.setParam("random", "native");
-                }
-                if (line.hasOption("log")) {
-                    cmd.setParam("log", Integer.parseInt(line.getOptionValue("log")));
-                }
-                else{
-                    cmd.setParam("log", 0);
-                }
-
-                if (line.hasOption("exp")) {
-                    cmd.setParam("exp", Integer.parseInt(line.getOptionValue("exp")));
-                }
-                else {
-                    cmd.setParam("exp", 0);
-                }
-
-                if (line.hasOption("saveModel")){
-                    cmd.setParam("saveModel", Integer.parseInt(line.getOptionValue("saveModel")));
-                }
-                else {
-                    cmd.setParam("saveModel", 1);
+                Option[] lineOptions = line.getOptions();
+                for(int i = 0; i < lineOptions.length; i++){
+                    cmd.setParam(lineOptions[i].getArgName(), lineOptions[i].getValue());
                 }
 
                 LOGGER.info("[CMD] INPUT FILE:" + cmd.getParam("inputFile").toString());
                 LOGGER.info("[CMD] MODEL FILE:" + cmd.getParam("modelFile").toString());
                 LOGGER.info("[CMD] TASK:" + cmd.getParam("task").toString());
-                LOGGER.info("[CMD] TOPICS:" + Integer.toString((Integer)cmd.getParam("topics")));
-                LOGGER.info("[CMD] ITERS:" + Integer.toString((Integer)cmd.getParam("iters")));
-                LOGGER.info("[CMD] TOPK:" + Integer.toString((Integer)cmd.getParam("topk")));
+                LOGGER.info("[CMD] TOPICS:" + cmd.getParam("topics").toString());
+                LOGGER.info("[CMD] ITERS:" + cmd.getParam("iters").toString());
+                LOGGER.info("[CMD] TOPK:" + cmd.getParam("topk").toString());
                 LOGGER.info("[CMD] LDA Sampler:" + cmd.getParam("LDASampler").toString());
                 LOGGER.info("[CMD] Random Number Generator:" + cmd.getParam("random").toString());
                 LOGGER.info("[CMD] Math Log:" + cmd.getParam("log").toString());

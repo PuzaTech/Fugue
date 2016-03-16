@@ -24,6 +24,7 @@ public class DataReaderTest {
         URL testFileURL = this.getClass().getClassLoader().getResource("ap-test.json");
         if (testFileURL != null) {
             msg.setParam("inputFile", testFileURL.getPath());
+            msg.setParam("topk", "1");
         }
         msg = r.read(msg);
         // check document

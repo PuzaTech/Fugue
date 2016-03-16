@@ -24,7 +24,7 @@ public class DataReader {
 
     public Message read(Message m) throws IOException {
         String inputFile = m.getParam("inputFile").toString();
-        Integer top = (Integer)m.getParam("topk");
+        Integer top = Integer.parseInt(m.getParam("topk").toString());
 
         if (top == null)
             top = 1;

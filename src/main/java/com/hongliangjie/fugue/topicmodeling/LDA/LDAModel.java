@@ -3,6 +3,7 @@ package com.hongliangjie.fugue.topicmodeling.lda;
 import com.hongliangjie.fugue.Message;
 import com.hongliangjie.fugue.serialization.Model;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,6 +38,16 @@ public class LDAModel extends Model{
 
     @Override
     public Message getParameters() {
-        return null;
+        Message msg = new Message();
+        msg.setParam("alpha", alpha);
+        List<Double> b = new ArrayList<Double>();
+        for (Map.Entry<String, Double> entry : beta.entrySet()){
+            Double value = entry.getValue();
+            b.add(value);
+        }
+        msg.setParam("beta", b);
+        //msg.setParam("wordTopicCounts", wordTopicCounts);
+        msg.setParam("topicCounts", topicCounts);
+        return msg;
     }
 }
