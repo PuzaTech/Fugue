@@ -416,14 +416,14 @@ public class LDA extends TopicModel {
             modelFileNames[0] = cmdArg.getParam("modelFile").toString();
         }
         Gson gson = new Gson();
-        String line;
         modelPools = new ArrayList<ModelCountainer>();
         for (int s = 0; s < modelFileNames.length; s++) {
             String modelFileName = modelFileNames[s];
             File modelFile = new File(modelFileName);
             if (modelFile.exists() && !modelFile.isDirectory()) {
                 BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(modelFile), "UTF8"));
-                while ((line = br.readLine()) != null) {
+                String line = br.readLine();
+                if (line != null){
                     Model obj = gson.fromJson(line, LDAModel.class);
                     Message msg = obj.getParameters();
                     ModelCountainer currentModel = new ModelCountainer();
@@ -439,7 +439,6 @@ public class LDA extends TopicModel {
                     for (int v = 0; v < currentModel.beta.size(); v++)
                         currentModel.betaSum += currentModel.beta.get(v);
                     modelPools.add(currentModel);
-                    break;
                 }
                 LOGGER.info("Loaded " + modelFileName);
             }
@@ -452,7 +451,7 @@ public class LDA extends TopicModel {
         for(int i = 0; i < outputFileParts.length - 1; i ++){
             outputFilePrefix.append(outputFileParts[i] + ".");
         }
-        if (all == false) {
+        if (all) {
             String[] oneFile = new String[1];
             outputFilePrefix.append(Integer.toString(SAVED % TOTAL_SAVES) + ".");
             outputFilePrefix.append(outputFileParts[outputFileParts.length - 1]);
