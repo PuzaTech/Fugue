@@ -6,7 +6,6 @@ import com.hongliangjie.fugue.serialization.Feature;
 import org.junit.Test;
 
 import java.net.URL;
-import java.util.HashMap;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
@@ -47,14 +46,5 @@ public class DataReaderTest {
         assertEquals("DataReader f3 Type", "TOKEN", f3.getFeatureType());
         assertEquals("DataReader f3 Name", "adult", f3.getFeatureName());
         assertEquals("DataReader f3 Value", true, Math.abs(f3.getFeatureValue() - 1.0) < 1e-10);
-        // check forward index
-        HashMap<String, Integer> wordsForwardIndex = (HashMap<String, Integer>)msg.getParam("forwardIndex");
-        assertEquals("DataReader forwardIndex", 186, wordsForwardIndex.size());
-        assertEquals("DataReader forwardIndex", 0, (long)wordsForwardIndex.get("i"));
-        // check inverted index
-        HashMap<Integer, String> wordsInvertedIndex = (HashMap<Integer, String>)msg.getParam("invertedIndex");
-        assertEquals("DataReader invertedIndex", 186, wordsInvertedIndex.size());
-        assertEquals("DataReader forwardIndex", "i", wordsInvertedIndex.get(0));
-
     }
 }

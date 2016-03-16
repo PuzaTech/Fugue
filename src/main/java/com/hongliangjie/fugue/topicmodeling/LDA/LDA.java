@@ -25,10 +25,9 @@ import java.util.regex.Pattern;
  * Created by liangjie on 10/29/14.
  */
 public class LDA extends TopicModel {
-    protected Map<String, Integer> wordForwardIndex;
     protected List<Document> internalDocs;
     protected double[] sample_buffer;
-
+    protected HashMap<String, Integer> wordsForwardIndex;
     protected List<ModelCountainer> modelPools;
 
     protected Message cmdArg;
@@ -116,25 +115,38 @@ public class LDA extends TopicModel {
         return cmdArg;
     }
 
-    protected void initModel() {
+    protected void initTrainModel() {
 
         TOPIC_NUM = (Integer) cmdArg.getParam("topics");
         MAX_ITER = (Integer) cmdArg.getParam("iters");
         iterationTimes = new double[MAX_ITER];
         internalDocs = (List<Document>) cmdArg.getParam("docs");
-        wordForwardIndex = (HashMap<String, Integer>) cmdArg.getParam("forwardIndex"); // get word forward index
 
-        LOGGER.info("Start to initialize model");
+        /* build index */
+        LOGGER.info("Start to build index.");
+        wordsForwardIndex = new HashMap<String, Integer>();
+        wordsForwardIndex.clear();
+        for (int d = 0; d < internalDocs.size(); d++) {
+            for (Feature f : internalDocs.get(d).getFeatures()) {
+                String feature_name = f.getFeatureName();
+                if (!wordsForwardIndex.containsKey(feature_name)) {
+                    wordsForwardIndex.put(feature_name, wordsForwardIndex.size());
+                    Integer word_index = wordsForwardIndex.get(feature_name);
+                }
+            }
+        }
+
+        LOGGER.info("Start to initialize model.");
         LOGGER.info("Topic Num:" + TOPIC_NUM);
-        LOGGER.info("ForwardIndex Size:" + wordForwardIndex.size());
+        LOGGER.info("ForwardIndex Size:" + wordsForwardIndex.size());
 
         modelPools = new ArrayList<ModelCountainer>();
         modelPools.add(0, new ModelCountainer());
 
         /* initialize all model parameters with fixed sizes */
-        modelPools.get(0).wordTopicCounts = new ArrayList<int[]>(wordForwardIndex.size());
-        modelPools.get(0).beta = new ArrayList<Double>(wordForwardIndex.size());
-        for (int i = 0; i < wordForwardIndex.size(); i++) {
+        modelPools.get(0).wordTopicCounts = new ArrayList<int[]>(wordsForwardIndex.size());
+        modelPools.get(0).beta = new ArrayList<Double>(wordsForwardIndex.size());
+        for (int i = 0; i < wordsForwardIndex.size(); i++) {
             int[] topicCounts = new int[TOPIC_NUM];
             modelPools.get(0).wordTopicCounts.add(topicCounts);
             modelPools.get(0).beta.add(0.01);
@@ -158,7 +170,7 @@ public class LDA extends TopicModel {
         for (int d = 0; d < internalDocs.size(); d++) {
             for (Feature f : internalDocs.get(d).getFeatures()) {
                 String feature_name = f.getFeatureName();
-                Integer feature_index = wordForwardIndex.get(feature_name);
+                Integer feature_index = wordsForwardIndex.get(feature_name);
                 // we randomly assign a topic for this token
                 int topic = randomGNR.nextInt(TOPIC_NUM);
                 modelPools.get(0).docTopicAssignments.get(d).add(topic);
@@ -299,7 +311,7 @@ public class LDA extends TopicModel {
 
             for (Feature f : d.getFeatures()) {
                 String featureName = f.getFeatureName();
-                Integer featureIndex = wordForwardIndex.get(featureName);
+                Integer featureIndex = wordsForwardIndex.get(featureName);
 
                 int current_topic = docTopicAssignment.get(pos);
                 docTopicBuffer[current_topic]--;
@@ -364,7 +376,7 @@ public class LDA extends TopicModel {
     }
 
     public void train() {
-        initModel();
+        initTrainModel();
         LOGGER.info("Start to perform Gibbs Sampling");
         LOGGER.info("MAX_ITER:" + MAX_ITER);
         String samplerStr = cmdArg.getParam("LDASampler").toString();

@@ -61,7 +61,7 @@ public class LDATest {
 
                 for (Feature f : d.getFeatures()) {
                     String featureName = f.getFeatureName();
-                    Integer featureIndex = wordForwardIndex.get(featureName);
+                    Integer featureIndex = wordsForwardIndex.get(featureName);
 
                     int current_topic = docTopicAssignment.get(pos);
                     docTopicBuffer[current_topic]--;
@@ -113,7 +113,7 @@ public class LDATest {
 
         @Override
         public void train(){
-            initModel();
+            initTrainModel();
             countsCheck();
             LOGGER.info("Start to perform Gibbs Sampling");
             LOGGER.info("MAX_ITER:" + MAX_ITER);
