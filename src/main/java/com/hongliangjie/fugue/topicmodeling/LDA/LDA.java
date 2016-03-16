@@ -28,6 +28,7 @@ public class LDA extends TopicModel {
     protected List<Document> internalDocs;
     protected double[] sample_buffer;
     protected HashMap<String, Integer> wordsForwardIndex;
+    protected HashMap<Integer, String> wordsInvertedIndex;
     protected List<ModelCountainer> modelPools;
 
     protected Message cmdArg;
@@ -108,6 +109,12 @@ public class LDA extends TopicModel {
         int logInt = Integer.parseInt(cmdArg.getParam("log").toString());
         mathLog = new MathLog(logInt);
         LOGGER.info("Math Log Function:" + logInt);
+
+        TOPIC_NUM = Integer.parseInt(cmdArg.getParam("topics").toString());
+        MAX_ITER = Integer.parseInt(cmdArg.getParam("iters").toString());
+        iterationTimes = new double[MAX_ITER];
+        internalDocs = (List<Document>) cmdArg.getParam("docs");
+
     }
 
     @Override
@@ -115,26 +122,28 @@ public class LDA extends TopicModel {
         return cmdArg;
     }
 
-    protected void initTrainModel() {
-
-        TOPIC_NUM = (Integer) cmdArg.getParam("topics");
-        MAX_ITER = (Integer) cmdArg.getParam("iters");
-        iterationTimes = new double[MAX_ITER];
-        internalDocs = (List<Document>) cmdArg.getParam("docs");
-
+    public void rebuildIndex(){
         /* build index */
         LOGGER.info("Start to build index.");
         wordsForwardIndex = new HashMap<String, Integer>();
         wordsForwardIndex.clear();
+        wordsInvertedIndex = new HashMap<Integer, String>();
+        wordsInvertedIndex.clear();
         for (int d = 0; d < internalDocs.size(); d++) {
             for (Feature f : internalDocs.get(d).getFeatures()) {
                 String feature_name = f.getFeatureName();
                 if (!wordsForwardIndex.containsKey(feature_name)) {
                     wordsForwardIndex.put(feature_name, wordsForwardIndex.size());
+                    Integer word_index = wordsForwardIndex.get(feature_name);
+                    wordsInvertedIndex.put(word_index, feature_name);
                 }
             }
         }
+        LOGGER.info("Index Size:" + wordsForwardIndex.size());
+    }
 
+    protected void initTrainModel() {
+        rebuildIndex();
         LOGGER.info("Start to initialize model.");
         LOGGER.info("Topic Num:" + TOPIC_NUM);
         LOGGER.info("ForwardIndex Size:" + wordsForwardIndex.size());
@@ -379,7 +388,7 @@ public class LDA extends TopicModel {
         LOGGER.info("Start to perform Gibbs Sampling");
         LOGGER.info("MAX_ITER:" + MAX_ITER);
         String samplerStr = cmdArg.getParam("LDASampler").toString();
-        int save = (Integer)cmdArg.getParam("saveModel");
+        int save = Integer.parseInt(cmdArg.getParam("saveModel").toString());
 
         Sampler s = null;
         if (samplerStr != null) {
@@ -408,9 +417,70 @@ public class LDA extends TopicModel {
             saveModel(0);
     }
 
+    public void initTestModels(){
+        for (ModelCountainer m : modelPools){
+            m.beta = new double[m.outsideBeta.size()];
+            for (int v = 0; v < m.outsideBeta.size(); v++ ){
+                // this is the default value
+                m.beta[v] = 0.01;
+            }
+            m.betaSum = 0.0;
+            for (Map.Entry<String, Double> entry : m.outsideBeta.entrySet()){
+                String sKey = entry.getKey();
+                Double sValue = entry.getValue();
+                if (wordsForwardIndex.containsKey(sKey)){
+                    int wordIndex = wordsForwardIndex.get(sKey);
+                    m.beta[wordIndex] = sValue;
+                    m.betaSum += sValue;
+                }
+                else{
+                    LOGGER.info("[WARNING]: Term:" + sKey + " is not in the dictionary when constructing beta array.");
+                }
+            }
+
+            m.alphaSum = 0.0;
+            for (int k = 0; k < m.alpha.length; k ++){
+                m.alphaSum += m.alpha[k];
+            }
+
+            m.wordTopicCounts = new ArrayList<int[]>();
+            for (int k = 0; k < m.outsideWordTopicCounts.size(); k ++){
+                int[] topicCounts = new int[m.alpha.length];
+                m.wordTopicCounts.add(topicCounts);
+            }
+            for (Map.Entry<String, int[]> entry : m.outsideWordTopicCounts.entrySet()){
+                String sKey = entry.getKey();
+                if (wordsForwardIndex.containsKey(sKey)){
+                    int wordIndex = wordsForwardIndex.get(sKey);
+                    int[] wordCounts = entry.getValue();
+                    for ( int k = 0; k < wordCounts.length; k ++) {
+                        m.wordTopicCounts.get(wordIndex)[k] = wordCounts[k];
+                    }
+                }
+                else{
+                    LOGGER.info("[WARNING]: Term:" + sKey + " is not in the dictionary when constructing word topic counts.");
+                }
+            }
+
+            if (m.alpha.length > TOPIC_NUM)
+                TOPIC_NUM = m.alpha.length;
+
+            LOGGER.info("TOPIC NUM:" + TOPIC_NUM);
+            LOGGER.info("Outside Term Num:" + m.outsideWordTopicCounts.size());
+            LOGGER.info("Term Num:" + m.wordTopicCounts.size());
+            LOGGER.info("alphaSum:" + m.alphaSum);
+            LOGGER.info("betaSum:" + m.betaSum);
+            LOGGER.info("Finished initializing model");
+        }
+
+    }
+
     public void test() {
         try {
             loadModel();
+            rebuildIndex();
+            initTestModels();
+
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -419,6 +489,7 @@ public class LDA extends TopicModel {
     public void loadModel() throws IOException {
         int multipleModels = Integer.parseInt(cmdArg.getParam("multipleModels").toString());
         String[] modelFileNames = null;
+        LOGGER.info("Load Multiple Test Models:" + multipleModels);
         if (multipleModels == 1) {
             modelFileNames = getModelFiles(true);
         }
@@ -430,6 +501,7 @@ public class LDA extends TopicModel {
         modelPools = new ArrayList<ModelCountainer>();
         for (int s = 0; s < modelFileNames.length; s++) {
             String modelFileName = modelFileNames[s];
+            LOGGER.info("Trying to load " + modelFileName);
             File modelFile = new File(modelFileName);
             if (modelFile.exists() && !modelFile.isDirectory()) {
                 BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(modelFile), "UTF8"));
@@ -455,7 +527,7 @@ public class LDA extends TopicModel {
         for(int i = 0; i < outputFileParts.length - 1; i ++){
             outputFilePrefix.append(outputFileParts[i] + ".");
         }
-        if (all) {
+        if (!all) {
             String[] oneFile = new String[1];
             outputFilePrefix.append(Integer.toString(SAVED % TOTAL_SAVES) + ".");
             outputFilePrefix.append(outputFileParts[outputFileParts.length - 1]);
@@ -483,6 +555,7 @@ public class LDA extends TopicModel {
         cmdArg.setParam("beta", modelPools.get(modelID).beta);
         cmdArg.setParam("topicCounts", modelPools.get(modelID).topicCounts);
         cmdArg.setParam("wordTopicCounts", modelPools.get(modelID).wordTopicCounts);
+        cmdArg.setParam("invertedIndex", wordsInvertedIndex);
         obj.setParameters(cmdArg);
 
         try {

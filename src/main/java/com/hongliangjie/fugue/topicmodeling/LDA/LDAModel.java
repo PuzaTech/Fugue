@@ -3,7 +3,6 @@ package com.hongliangjie.fugue.topicmodeling.lda;
 import com.hongliangjie.fugue.Message;
 import com.hongliangjie.fugue.serialization.Model;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,11 +21,11 @@ public class LDAModel extends Model{
         // setup alpha
         alpha = (double[])msg.getParam("alpha");
         // setup beta
-        List<Double> b = (List<Double>)msg.getParam("beta");
+        double[] b = (double[])msg.getParam("beta");
         HashMap<Integer, String> wordsInvertedIndex = (HashMap<Integer, String>)msg.getParam("invertedIndex");
-        for(int v=0; v < b.size(); v++){
+        for(int v=0; v < b.length; v++){
             String feature_name = wordsInvertedIndex.get(v);
-            beta.put(feature_name, b.get(v));
+            beta.put(feature_name, b[v]);
         }
         List<int[]> w = (List<int[]>)msg.getParam("wordTopicCounts");
         for(int v=0; v < w.size(); v++){

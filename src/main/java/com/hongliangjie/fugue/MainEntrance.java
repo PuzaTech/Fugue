@@ -27,6 +27,8 @@ public class MainEntrance {
         Option expOption = Option.builder().longOpt("exp").desc("the math exp function").hasArg().argName("exp").build();
         Option logOption = Option.builder().longOpt("log").desc("the math log function").hasArg().argName("log").build();
         Option saveModelOption = Option.builder().longOpt("saveModel").desc("automatically save models").hasArg().argName("saveModel").build();
+        Option multipleModelsOption = Option.builder().longOpt("multipleModels").desc("load multiple instances of test models").hasArg().argName("multipleModels").build();
+
 
         Option helpOption = new Option("help", "print out help message");
 
@@ -42,6 +44,7 @@ public class MainEntrance {
         options.addOption(expOption);
         options.addOption(logOption);
         options.addOption(saveModelOption);
+        options.addOption(multipleModelsOption);
 
         return options;
     }

@@ -15,6 +15,7 @@ class ProfileParam(object):
         self._exp = 0
         self._log = 0
         self._saveModel = 1
+        self._multipleModels = 0
 
     def getParams(self):
         return_args = []
@@ -32,6 +33,7 @@ class ProfileAPTest(ProfileParam, object):
         self._LDASampler = 'binary'
         self._random = 'deterministic'
         self._task = 'test'
+        self._multipleModels = 1
 
 class ProfileAPTrain(ProfileParam, object):
     def __init__(self):
