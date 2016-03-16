@@ -8,6 +8,7 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
@@ -39,6 +40,24 @@ public class LDATest {
         catch (IOException e){
             assertEquals("Load Finished Failed", true, false);
         }
+
+    }
+
+    @Test
+    public void testRebuildIndex() throws Exception {
+        Message msg = prepareDocuments();
+        LDA lda = new LDA();
+        lda.setMessage(msg);
+        lda.rebuildIndex();
+        Message returnMsg = lda.getMessage();
+        HashMap<String, Integer> wordsForwardIndex = (HashMap<String, Integer>)returnMsg.getParam("forwardIndex");
+        HashMap<Integer, String> wordsInvertedIndex = (HashMap<Integer, String>)returnMsg.getParam("invertedIndex");
+        assertEquals("Equal Index Size", true, wordsForwardIndex.size() == wordsInvertedIndex.size());
+    }
+
+
+    @Test
+    public void testLikelihood() throws Exception {
 
     }
 
@@ -183,6 +202,12 @@ public class LDATest {
         URL testFileURL = this.getClass().getClassLoader().getResource("ap-test.json");
         msg.setParam("inputFile", testFileURL.getPath());
         msg.setParam("topk", 100);
+        msg.setParam("topics", 10);
+        msg.setParam("iters", 50);
+        msg.setParam("saveModel", 0);
+        msg.setParam("random", "native");
+        msg.setParam("exp", 1);
+        msg.setParam("log", 1);
         msg = r.read(msg);
         return msg;
     }
@@ -191,12 +216,6 @@ public class LDATest {
     @Test
     public void testTrain() throws Exception {
         Message msg = prepareDocuments();
-        msg.setParam("topics", 10);
-        msg.setParam("iters", 50);
-        msg.setParam("saveModel", 0);
-        msg.setParam("random", "native");
-        msg.setParam("exp", 1);
-        msg.setParam("log", 1);
         // Here is to test whether normal sampling and log-sampling have the consistent topic assignments for each every step
         // Also this is a very deep test of internal structures
         DeepTestLDA m = new DeepTestLDA();

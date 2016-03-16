@@ -119,6 +119,8 @@ public class LDA extends TopicModel {
 
     @Override
     public Message getMessage(){
+        cmdArg.setParam("invertedIndex", wordsInvertedIndex);
+        cmdArg.setParam("forwardIndex", wordsForwardIndex);
         return cmdArg;
     }
 
