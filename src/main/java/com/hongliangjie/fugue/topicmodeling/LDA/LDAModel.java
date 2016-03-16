@@ -40,13 +40,8 @@ public class LDAModel extends Model{
     public Message getParameters() {
         Message msg = new Message();
         msg.setParam("alpha", alpha);
-        List<Double> b = new ArrayList<Double>();
-        for (Map.Entry<String, Double> entry : beta.entrySet()){
-            Double value = entry.getValue();
-            b.add(value);
-        }
-        msg.setParam("beta", b);
-        //msg.setParam("wordTopicCounts", wordTopicCounts);
+        msg.setParam("beta", beta);
+        msg.setParam("wordTopicCounts", wordTopicCounts);
         msg.setParam("topicCounts", topicCounts);
         return msg;
     }

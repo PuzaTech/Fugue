@@ -48,7 +48,7 @@ public class LDA extends TopicModel {
 
     protected final class ModelCountainer{
         public double[] alpha;
-        public List<Double> beta;
+        public double[] beta;
         public double betaSum;
         public double alphaSum;
         public List<int[]> wordTopicCounts; // how many times a term appears in a topic
@@ -57,7 +57,7 @@ public class LDA extends TopicModel {
         public List<List<Integer>> docTopicAssignments; // !!! DENSE !!!
 
         public Map<String, int[]> outsideWordTopicCounts = new HashMap<String, int[]>(); // how many times a term appears in a topic
-
+        public Map<String, Double> outsideBeta;
     }
 
     public LDA() {
@@ -131,7 +131,6 @@ public class LDA extends TopicModel {
                 String feature_name = f.getFeatureName();
                 if (!wordsForwardIndex.containsKey(feature_name)) {
                     wordsForwardIndex.put(feature_name, wordsForwardIndex.size());
-                    Integer word_index = wordsForwardIndex.get(feature_name);
                 }
             }
         }
@@ -145,12 +144,12 @@ public class LDA extends TopicModel {
 
         /* initialize all model parameters with fixed sizes */
         modelPools.get(0).wordTopicCounts = new ArrayList<int[]>(wordsForwardIndex.size());
-        modelPools.get(0).beta = new ArrayList<Double>(wordsForwardIndex.size());
+        modelPools.get(0).beta = new double[wordsForwardIndex.size()];
         for (int i = 0; i < wordsForwardIndex.size(); i++) {
             int[] topicCounts = new int[TOPIC_NUM];
             modelPools.get(0).wordTopicCounts.add(topicCounts);
-            modelPools.get(0).beta.add(0.01);
-            modelPools.get(0).betaSum += modelPools.get(0).beta.get(i);
+            modelPools.get(0).beta[i] = 0.01;
+            modelPools.get(0).betaSum += modelPools.get(0).beta[i];
         }
         modelPools.get(0).docTopicBuffers = new ArrayList<int[]>(internalDocs.size());
         modelPools.get(0).docTopicAssignments = new ArrayList<List<Integer>>(internalDocs.size());
@@ -193,8 +192,8 @@ public class LDA extends TopicModel {
         double result_2 = 0.0;
 
         // topics side likelihood
-        for (int v = 0; v < modelPools.get(modelID).beta.size(); v++) {
-            result_1 += LogGamma.logGamma(modelPools.get(modelID).beta.get(v));
+        for (int v = 0; v < modelPools.get(modelID).beta.length; v++) {
+            result_1 += LogGamma.logGamma(modelPools.get(modelID).beta[v]);
         }
         result_1 = TOPIC_NUM * (LogGamma.logGamma(modelPools.get(modelID).betaSum) - result_1);
 
@@ -202,8 +201,8 @@ public class LDA extends TopicModel {
             double part_1 = 0.0;
             double part_2 = 0.0;
             for (int v=0; v < modelPools.get(0).wordTopicCounts.size(); v++) {
-                part_1 = part_1 + LogGamma.logGamma(modelPools.get(modelID).wordTopicCounts.get(v)[k] + modelPools.get(modelID).beta.get(v));
-                part_2 = part_2 + (modelPools.get(modelID).wordTopicCounts.get(v)[k] + modelPools.get(modelID).beta.get(v));
+                part_1 = part_1 + LogGamma.logGamma(modelPools.get(modelID).wordTopicCounts.get(v)[k] + modelPools.get(modelID).beta[v]);
+                part_2 = part_2 + (modelPools.get(modelID).wordTopicCounts.get(v)[k] + modelPools.get(modelID).beta[v]);
             }
             result_1 = result_1 + part_1 - LogGamma.logGamma(part_2);
         }
@@ -290,7 +289,7 @@ public class LDA extends TopicModel {
         public void computeProbabilities(int modelID, int featureID){
             // calculate normal probabilities
             for (int k = 0; k < TOPIC_NUM; k++) {
-                sample_buffer[k] = ((modelPools.get(modelID).wordTopicCounts.get(featureID)[k] + modelPools.get(modelID).beta.get(featureID)) / (modelPools.get(modelID).topicCounts[k] + modelPools.get(modelID).betaSum)) * (docTopicBuffer[k] + modelPools.get(modelID).alpha[k]);
+                sample_buffer[k] = ((modelPools.get(modelID).wordTopicCounts.get(featureID)[k] + modelPools.get(modelID).beta[featureID]) / (modelPools.get(modelID).topicCounts[k] + modelPools.get(modelID).betaSum)) * (docTopicBuffer[k] + modelPools.get(modelID).alpha[k]);
             }
         }
 
@@ -298,7 +297,7 @@ public class LDA extends TopicModel {
             // calculate log-probabilities
             for (int k = 0; k < TOPIC_NUM; k++) {
                 sample_buffer[k] = mathLog.compute(docTopicBuffer[k] + modelPools.get(modelID).alpha[k]);
-                sample_buffer[k] += mathLog.compute(modelPools.get(modelID).wordTopicCounts.get(featureID)[k] + modelPools.get(modelID).beta.get(featureID));
+                sample_buffer[k] += mathLog.compute(modelPools.get(modelID).wordTopicCounts.get(featureID)[k] + modelPools.get(modelID).beta[featureID]);
                 sample_buffer[k] -= mathLog.compute(modelPools.get(modelID).topicCounts[k] + modelPools.get(modelID).betaSum);
             }
         }
@@ -440,16 +439,9 @@ public class LDA extends TopicModel {
                     Message msg = obj.getParameters();
                     ModelCountainer currentModel = new ModelCountainer();
                     currentModel.alpha = (double[])msg.getParam("alpha");
-                    currentModel.beta = (List<Double>)msg.getParam("beta");
+                    currentModel.outsideBeta = (Map<String, Double>)msg.getParam("beta");
                     currentModel.outsideWordTopicCounts = (Map<String, int[]>)msg.getParam("wordTopicCounts");
                     currentModel.topicCounts = (int[])msg.getParam("topicCounts");
-                    // recompute alphaSum and betaSum
-                    currentModel.alphaSum = 0.0;
-                    for (int k = 0; k < currentModel.alpha.length; k++)
-                        currentModel.alphaSum += currentModel.alpha[k];
-                    currentModel.betaSum = 0.0;
-                    for (int v = 0; v < currentModel.beta.size(); v++)
-                        currentModel.betaSum += currentModel.beta.get(v);
                     modelPools.add(currentModel);
                 }
                 LOGGER.info("Loaded " + modelFileName);
