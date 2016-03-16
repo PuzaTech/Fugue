@@ -45,7 +45,7 @@ public class LDATest {
 
     @Test
     public void testRebuildIndex() throws Exception {
-        Message msg = prepareDocuments();
+        Message msg = prepareDocuments(100);
         LDA lda = new LDA();
         lda.setMessage(msg);
         lda.rebuildIndex();
@@ -58,7 +58,7 @@ public class LDATest {
     @Test
     public void testTest(){
         try {
-            Message msg = prepareDocuments();
+            Message msg = prepareDocuments(1000000);
             URL testFileURL = this.getClass().getClassLoader().getResource("model.ap.json");
             String testFileName = testFileURL.getPath();
             msg.setParam("modelFile", testFileName);
@@ -214,12 +214,12 @@ public class LDATest {
         }
     }
 
-    private Message prepareDocuments() throws Exception{
+    private Message prepareDocuments(int k) throws Exception{
         DataReader r = new DataReader();
         Message msg = new Message();
         URL testFileURL = this.getClass().getClassLoader().getResource("ap-test.json");
         msg.setParam("inputFile", testFileURL.getPath());
-        msg.setParam("topk", 100000);
+        msg.setParam("topk", k);
         msg.setParam("topics", 10);
         msg.setParam("iters", 50);
         msg.setParam("saveModel", 0);
@@ -233,7 +233,7 @@ public class LDATest {
 
     @Test
     public void testTrain() throws Exception {
-        Message msg = prepareDocuments();
+        Message msg = prepareDocuments(100);
         // Here is to test whether normal sampling and log-sampling have the consistent topic assignments for each every step
         // Also this is a very deep test of internal structures
         DeepTestLDA m = new DeepTestLDA();
