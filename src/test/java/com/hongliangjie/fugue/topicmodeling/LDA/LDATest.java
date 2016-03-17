@@ -69,6 +69,8 @@ public class LDATest {
             msg.setParam("random", "native");
             msg.setParam("exp", 1);
             msg.setParam("log", 1);
+            msg.setParam("LDASampler", "binary");
+            msg.setParam("random", "deterministic");
             LDA lda = new LDA();
             lda.setMessage(msg);
             lda.test();

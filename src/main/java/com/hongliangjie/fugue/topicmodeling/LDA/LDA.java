@@ -341,6 +341,10 @@ public class LDA extends TopicModel {
             return pos;
         }
 
+        public void sampleOverDocs(List<Document> docs, int maxIter){
+            sampleOverDocs(0, docs, maxIter, 1);
+        }
+
         public void sampleOverDocs(int modelID, List<Document> docs, int maxIter, int save){
             int overall_pos = 0;
             long overall_startTime = System.currentTimeMillis();
@@ -385,13 +389,37 @@ public class LDA extends TopicModel {
         }
     }
 
-    public void train() {
-        initTrainModel();
-        LOGGER.info("Start to perform Gibbs Sampling");
-        LOGGER.info("MAX_ITER:" + MAX_ITER);
-        String samplerStr = cmdArg.getParam("LDASampler").toString();
-        int save = Integer.parseInt(cmdArg.getParam("saveModel").toString());
+    protected class ProcessTestDocuments extends ProcessDocuments{
 
+        public ProcessTestDocuments(Sampler s){
+            super(s);
+        }
+
+        protected void sampleTestDoc(List<Document> docs, int docIndex){
+
+        }
+
+        @Override
+        public void sampleOverDocs(int modelID, List<Document> docs, int maxIter, int save){
+            LOGGER.info("Start to testing.");
+            long overall_startTime = System.currentTimeMillis();
+            int num_d = 0;
+            for (int d =0; d < docs.size(); d++){
+                for(CURRENT_ITER = 0; CURRENT_ITER < maxIter; CURRENT_ITER++){
+                    sampleTestDoc(docs, d);
+                }
+                num_d++;
+                if (num_d % 500 == 0) {
+                    LOGGER.info("Processed:" + num_d);
+                }
+            }
+            LOGGER.info("Finished testing.");
+            long overall_endTime = System.currentTimeMillis();
+            LOGGER.info("Average Document (per-K)/Seconds " + Double.toString((num_d / 1000.0) /((overall_endTime - overall_startTime) / 1000.0)));
+        }
+    }
+
+    private Sampler getSampler(String samplerStr){
         Sampler s = null;
         if (samplerStr != null) {
             if ("normal".equals(samplerStr)) {
@@ -411,7 +439,16 @@ public class LDA extends TopicModel {
         else{
             s = new GibbsSampling();
         }
+        return s;
+    }
 
+    public void train() {
+        initTrainModel();
+        LOGGER.info("Start to perform Gibbs Sampling");
+        LOGGER.info("MAX_ITER:" + MAX_ITER);
+        String samplerStr = cmdArg.getParam("LDASampler").toString();
+        int save = Integer.parseInt(cmdArg.getParam("saveModel").toString());
+        Sampler s = getSampler(samplerStr);
         ProcessDocuments p = new ProcessDocuments(s);
         s.setProcessor(p);
         p.sampleOverDocs(0, internalDocs, MAX_ITER, save);
@@ -482,6 +519,13 @@ public class LDA extends TopicModel {
             loadModel();
             rebuildIndex();
             initTestModels();
+            LOGGER.info("Start to perform Gibbs Sampling");
+            LOGGER.info("MAX_ITER:" + MAX_ITER);
+            String samplerStr = cmdArg.getParam("LDASampler").toString();
+            Sampler s = getSampler(samplerStr);
+            ProcessDocuments p = new ProcessTestDocuments(s);
+            s.setProcessor(p);
+            p.sampleOverDocs(internalDocs, MAX_ITER);
 
         } catch (IOException e) {
             e.printStackTrace();
