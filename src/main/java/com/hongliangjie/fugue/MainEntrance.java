@@ -28,8 +28,8 @@ public class MainEntrance {
         Option logOption = Option.builder().longOpt("log").desc("the math log function").hasArg().argName("log").build();
         Option saveModelOption = Option.builder().longOpt("saveModel").desc("automatically save models").hasArg().argName("saveModel").build();
         Option multipleModelsOption = Option.builder().longOpt("multipleModels").desc("load multiple instances of test models").hasArg().argName("multipleModels").build();
-
-
+        Option startOption = Option.builder().longOpt("start").desc("the starting index of documents").hasArg().argName("start").build();
+        Option endOption = Option.builder().longOpt("end").desc("the ending index of documents").hasArg().argName("end").build();
         Option helpOption = new Option("help", "print out help message");
 
         options.addOption(inputFileOption);
@@ -45,6 +45,8 @@ public class MainEntrance {
         options.addOption(logOption);
         options.addOption(saveModelOption);
         options.addOption(multipleModelsOption);
+        options.addOption(startOption);
+        options.addOption(endOption);
 
         return options;
     }
@@ -63,6 +65,8 @@ public class MainEntrance {
         cmd.setParam("exp", "0");
         cmd.setParam("saveModel", "1");
         cmd.setParam("multipleModels", "0");
+        cmd.setParam("start", "0");
+        cmd.setParam("end", "-1");
         return cmd;
     }
 
@@ -93,6 +97,8 @@ public class MainEntrance {
                 LOGGER.info("[CMD] Random Number Generator:" + cmd.getParam("random").toString());
                 LOGGER.info("[CMD] Math Log:" + cmd.getParam("log").toString());
                 LOGGER.info("[CMD] Math Exp:" + cmd.getParam("exp").toString());
+                LOGGER.info("[CMD] Start:" + cmd.getParam("start").toString());
+                LOGGER.info("[CMD] End:" + cmd.getParam("end").toString());
             }
         } catch (ParseException exp) {
             System.err.println("Parsing failed.  Reason: " + exp.getMessage());

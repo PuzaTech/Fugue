@@ -57,8 +57,20 @@ public class LDA extends TopicModel {
         public List<int[]> docTopicBuffers; // !!! DENSE !!!
         public List<List<Integer>> docTopicAssignments; // !!! DENSE !!!
 
-        public Map<String, int[]> outsideWordTopicCounts = new HashMap<String, int[]>(); // how many times a term appears in a topic
+        public Map<String, int[]> outsideWordTopicCounts; // how many times a term appears in a topic
         public Map<String, Double> outsideBeta;
+
+        public double[][] phi;
+
+        public void computePhi(){
+            phi = new double[wordTopicCounts.size()][alpha.length];
+            for(int i = 0; i < wordTopicCounts.size(); i++){
+                for (int j = 0; j < wordTopicCounts.get(i).length; j++){
+                    phi[i][j] = (wordTopicCounts.get(i)[j] + beta[i]) / (topicCounts[j] + betaSum);
+                }
+            }
+        }
+
     }
 
     public LDA() {
@@ -341,11 +353,7 @@ public class LDA extends TopicModel {
             return pos;
         }
 
-        public void sampleOverDocs(List<Document> docs, int maxIter){
-            sampleOverDocs(0, docs, maxIter, 1);
-        }
-
-        public void sampleOverDocs(int modelID, List<Document> docs, int maxIter, int save){
+        public void sampleOverDocs(int modelID, List<Document> docs, int start, int end, int maxIter, int save){
             int overall_pos = 0;
             long overall_startTime = System.currentTimeMillis();
             for (CURRENT_ITER = 0; CURRENT_ITER < maxIter; CURRENT_ITER++) {
@@ -353,7 +361,7 @@ public class LDA extends TopicModel {
                 long startTime = System.currentTimeMillis();
                 int num_d = 0;
                 int total_pos = 0;
-                for (int d = 0; d < docs.size(); d++) {
+                for (int d = start; d < end; d++) {
                     int doc_pos = sampleOneDoc(docs, d, modelID);
                     overall_pos += doc_pos;
                     total_pos += doc_pos;
@@ -391,35 +399,105 @@ public class LDA extends TopicModel {
 
     protected class ProcessTestDocuments extends ProcessDocuments{
 
+        protected double[] modelPerplexity;
+        protected int[] modelSaved;
+
         public ProcessTestDocuments(Sampler s){
             super(s);
         }
 
-        protected void sampleTestDoc(List<Document> docs, int docIndex){
+        protected double computeTermProbability(double[] theta, int featureID, ModelCountainer m){
+            double prob = 0.0;
+            for (int k = 0; k < TOPIC_NUM; k++) {
+                prob += theta[k] * m.phi[featureID][k];
+            }
+            return prob;
+        }
 
+        protected void sampleTestDoc(List<Document> docs, int maxIter, int docIndex) {
+            // for each test document, half of the document is used to "fold-in" and the other half is used to compute "perplexity"
+            for (int m = 0; m < modelPools.size(); m++) {
+                docTopicAssignment = new ArrayList<Integer>();
+                docTopicBuffer = new int[TOPIC_NUM];
+                double[] theta = new double[TOPIC_NUM];
+                List<Feature> currentFeatures = docs.get(docIndex).getFeatures();
+                int docLength = currentFeatures.size();
+                int foldIn = docLength / 2;
+                // firstly init topic assignments
+                for (int i = 0; i < foldIn; i++) {
+                    // we randomly assign a topic for this token
+                    int topic = randomGNR.nextInt(TOPIC_NUM);
+                    docTopicAssignment.add(topic);
+                    docTopicBuffer[topic]++;
+                }
+                int BURN_IN = 0;
+                for (CURRENT_ITER = 0; CURRENT_ITER < maxIter; CURRENT_ITER++) {
+                    // fold-in
+                    for (int i = 0; i < foldIn; i++) {
+                        String featureName = currentFeatures.get(i).getFeatureName();
+                        Integer featureIndex = wordsForwardIndex.get(featureName);
+
+                        int current_topic = docTopicAssignment.get(i);
+                        docTopicBuffer[current_topic]--;
+
+                        double randomRV = randomGNR.nextDouble();
+                        int new_topic = sampler.draw(m, featureIndex, randomRV);
+
+                        docTopicBuffer[new_topic]++;
+                        docTopicAssignment.set(i, new_topic);
+                    }
+                    if ((CURRENT_ITER >= BURN_IN) && (CURRENT_ITER % 5 == 0)) {
+                        // estimate theta
+                        for (int k = 0; k < TOPIC_NUM; k++) {
+                            theta[k] = (docTopicBuffer[k] + modelPools.get(m).alpha[k]) / (foldIn + modelPools.get(m).alphaSum);
+                        }
+
+                        // compute perplexity
+                        for (int i = foldIn; i < currentFeatures.size(); i++) {
+                            String featureName = currentFeatures.get(i).getFeatureName();
+                            Integer featureID = wordsForwardIndex.get(featureName);
+
+                            double prob = computeTermProbability(theta, featureID, modelPools.get(m));
+
+                            modelPerplexity[m] = modelPerplexity[m] + Math.log(prob);
+                            modelSaved[m] ++;
+                        }
+                    }
+                }
+            }
         }
 
         @Override
-        public void sampleOverDocs(int modelID, List<Document> docs, int maxIter, int save){
+        public void sampleOverDocs(int modelID, List<Document> docs, int start, int end, int maxIter, int save){
             LOGGER.info("Start to testing.");
             long overall_startTime = System.currentTimeMillis();
             int num_d = 0;
-            for (int d =0; d < docs.size(); d++){
-                for(CURRENT_ITER = 0; CURRENT_ITER < maxIter; CURRENT_ITER++){
-                    sampleTestDoc(docs, d);
-                }
+            modelPerplexity = new double[modelPools.size()];
+            modelSaved = new int[modelPools.size()];
+
+            for (int d = start; d < end; d++){
+                sampleTestDoc(docs, 150, d);
                 num_d++;
                 if (num_d % 500 == 0) {
                     LOGGER.info("Processed:" + num_d);
                 }
             }
+
+            // average perplexity
+            double totalAverage = 0.0;
+            for (int m = 0; m < modelPools.size(); m++){
+                modelPerplexity[m] = Math.exp(-modelPerplexity[m] / modelSaved[m]);
+                LOGGER.info("Model " + m + "\t" + modelPerplexity[m]);
+                totalAverage += modelPerplexity[m];
+            }
+            LOGGER.info("Total Average Perplexity:" + totalAverage / modelPools.size());
             LOGGER.info("Finished testing.");
             long overall_endTime = System.currentTimeMillis();
             LOGGER.info("Average Document (per-K)/Seconds " + Double.toString((num_d / 1000.0) /((overall_endTime - overall_startTime) / 1000.0)));
         }
     }
 
-    private Sampler getSampler(String samplerStr){
+    protected Sampler getSampler(String samplerStr){
         Sampler s = null;
         if (samplerStr != null) {
             if ("normal".equals(samplerStr)) {
@@ -442,7 +520,17 @@ public class LDA extends TopicModel {
         return s;
     }
 
-    public void train() {
+    public void train(){
+        int start = Integer.parseInt(cmdArg.getParam("start").toString());
+        int end = Integer.parseInt(cmdArg.getParam("end").toString());
+        if (start < 0)
+            start = 0;
+        if (end < 0)
+            end = internalDocs.size();
+        train(start, end);
+    }
+
+    public void train(int start, int end){
         initTrainModel();
         LOGGER.info("Start to perform Gibbs Sampling");
         LOGGER.info("MAX_ITER:" + MAX_ITER);
@@ -451,7 +539,7 @@ public class LDA extends TopicModel {
         Sampler s = getSampler(samplerStr);
         ProcessDocuments p = new ProcessDocuments(s);
         s.setProcessor(p);
-        p.sampleOverDocs(0, internalDocs, MAX_ITER, save);
+        p.sampleOverDocs(0, internalDocs, start, end, MAX_ITER, save);
         if (save == 1)
             saveModel(0);
     }
@@ -501,8 +589,10 @@ public class LDA extends TopicModel {
                 }
             }
 
-            if (m.alpha.length > TOPIC_NUM)
+            if (m.alpha.length != TOPIC_NUM)
                 TOPIC_NUM = m.alpha.length;
+
+            m.computePhi(); // cache phi
 
             LOGGER.info("TOPIC NUM:" + TOPIC_NUM);
             LOGGER.info("Outside Term Num:" + m.outsideWordTopicCounts.size());
@@ -511,10 +601,19 @@ public class LDA extends TopicModel {
             LOGGER.info("betaSum:" + m.betaSum);
             LOGGER.info("Finished initializing model");
         }
-
     }
 
-    public void test() {
+    public void test(){
+        int start = Integer.parseInt(cmdArg.getParam("start").toString());
+        int end = Integer.parseInt(cmdArg.getParam("end").toString());
+        if (start < 0)
+            start = 0;
+        if (end < 0)
+            end = internalDocs.size();
+        test(start, end);
+    }
+
+    public void test(int start, int end){
         try {
             loadModel();
             rebuildIndex();
@@ -525,7 +624,7 @@ public class LDA extends TopicModel {
             Sampler s = getSampler(samplerStr);
             ProcessDocuments p = new ProcessTestDocuments(s);
             s.setProcessor(p);
-            p.sampleOverDocs(internalDocs, MAX_ITER);
+            p.sampleOverDocs(-1, internalDocs, start, end, MAX_ITER, 0);
 
         } catch (IOException e) {
             e.printStackTrace();

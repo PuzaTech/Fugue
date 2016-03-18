@@ -16,6 +16,8 @@ class ProfileParam(object):
         self._log = 0
         self._saveModel = 1
         self._multipleModels = 0
+        self._start = 0
+        self._end = -1
 
     def getParams(self):
         return_args = []
@@ -43,6 +45,8 @@ class ProfileAPTrain(ProfileParam, object):
         self._LDASampler = 'binary'
         self._random = 'deterministic'
         self._task = 'train'
+        self._start = 0
+        self._end = 1909
 
 class cmdBuilder(object):
     def __init__(self, profile):
@@ -95,7 +99,7 @@ class cmdCompile(cmdBuilder, object):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='The Fugue Topic Modeling Package')
-    parser.add_argument('--profile', help = 'the profile to launch', default = 'ProfileAP')
+    parser.add_argument('--profile', help = 'the profile to launch', default = 'ProfileAPTrain')
     parser.add_argument('--task', help = 'the task to perform', default = 'build')
     args = parser.parse_args()
     get_class = lambda x: globals()[x]
