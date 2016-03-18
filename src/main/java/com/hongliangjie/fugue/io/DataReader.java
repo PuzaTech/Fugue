@@ -1,9 +1,9 @@
 package com.hongliangjie.fugue.io;
 
 import com.google.gson.Gson;
+import com.hongliangjie.fugue.Message;
 import com.hongliangjie.fugue.serialization.Document;
 import com.hongliangjie.fugue.serialization.Feature;
-import com.hongliangjie.fugue.Message;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -12,7 +12,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -24,7 +23,7 @@ public class DataReader {
 
     public Message read(Message m) throws IOException {
         String inputFile = m.getParam("inputFile").toString();
-        Integer top = (Integer)m.getParam("topk");
+        Integer top = Integer.parseInt(m.getParam("topk").toString());
 
         if (top == null)
             top = 1;
@@ -32,8 +31,7 @@ public class DataReader {
         Gson gson = new Gson();
 
         List<Document> docs = new ArrayList<Document>();
-        HashMap<String, Integer> wordsForwardIndex = new HashMap<String, Integer>();
-        HashMap<Integer, String> wordsInvertedIndex = new HashMap<Integer, String>();
+
 
         LOGGER.info("READ TOP K:" + Integer.toString(top));
         if(inputFile != null) {
@@ -48,15 +46,8 @@ public class DataReader {
                 List<Feature> new_features = new ArrayList<Feature>();
                 for (Feature f : raw_doc.getFeatures()) {
                     String feature_type = f.getFeatureType();
-                    String feature_name = f.getFeatureName();
-                    if (("TOKEN").equals(feature_type)) {
+                    if (("TOKEN").equals(feature_type))
                         new_features.add(f);
-                        if(!wordsForwardIndex.containsKey(feature_name)){
-                            wordsForwardIndex.put(feature_name, wordsForwardIndex.size());
-                            Integer word_index = wordsForwardIndex.get(feature_name);
-                            wordsInvertedIndex.put(word_index, feature_name);
-                        }
-                    }
                 }
                 if(new_features.size() > 0) {
                     new_doc.setFeatures(new_features);
@@ -69,8 +60,6 @@ public class DataReader {
             br.close();
             LOGGER.info("Total number of documents:" + docs.size());
             m.setParam("docs", docs);
-            m.setParam("forwardIndex", wordsForwardIndex);
-            m.setParam("invertedIndex", wordsInvertedIndex);
         }
         else{
             System.err.println("Cannot find input file.");

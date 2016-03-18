@@ -21,11 +21,11 @@ public class LDAModel extends Model{
         // setup alpha
         alpha = (double[])msg.getParam("alpha");
         // setup beta
-        List<Double> b = (List<Double>)msg.getParam("beta");
+        double[] b = (double[])msg.getParam("beta");
         HashMap<Integer, String> wordsInvertedIndex = (HashMap<Integer, String>)msg.getParam("invertedIndex");
-        for(int v=0; v < b.size(); v++){
+        for(int v=0; v < b.length; v++){
             String feature_name = wordsInvertedIndex.get(v);
-            beta.put(feature_name, b.get(v));
+            beta.put(feature_name, b[v]);
         }
         List<int[]> w = (List<int[]>)msg.getParam("wordTopicCounts");
         for(int v=0; v < w.size(); v++){
@@ -37,6 +37,11 @@ public class LDAModel extends Model{
 
     @Override
     public Message getParameters() {
-        return null;
+        Message msg = new Message();
+        msg.setParam("alpha", alpha);
+        msg.setParam("beta", beta);
+        msg.setParam("wordTopicCounts", wordTopicCounts);
+        msg.setParam("topicCounts", topicCounts);
+        return msg;
     }
 }
