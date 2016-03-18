@@ -31,11 +31,13 @@ class ProfileAPTest(ProfileParam, object):
     def __init__(self):
         super(ProfileAPTest, self).__init__()
         self._inputFile = 'examples/data/ap.json'
-        self._modelFile = 'examples/models/model.ap.json'
+        self._modelFile = 'examples/models/model.ap-200.json'
         self._LDASampler = 'binary'
         self._random = 'deterministic'
         self._task = 'test'
         self._multipleModels = 1
+        self._start = 1909
+        self._end = -1
 
 class ProfileAPTrain(ProfileParam, object):
     def __init__(self):
