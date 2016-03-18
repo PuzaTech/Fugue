@@ -478,9 +478,7 @@ public class LDA extends TopicModel {
             for (int d = start; d < end; d++){
                 sampleTestDoc(docs, 150, d);
                 num_d++;
-                if (num_d % 500 == 0) {
-                    LOGGER.info("Processed:" + num_d);
-                }
+                LOGGER.info("Processed:" + d);
             }
 
             // average perplexity
