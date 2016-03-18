@@ -9,7 +9,10 @@ public class LogGamma {
     // Written by Tom Minka <minka@stat.cmu.edu>
     public static final double logGamma (double x)
     {
-        double result, y, xnum, xden;
+        double result;
+        double y;
+        double xnum;
+        double xden;
         int i;
         final double d1 = -5.772156649015328605195174e-1;
         final double p1[] = {
