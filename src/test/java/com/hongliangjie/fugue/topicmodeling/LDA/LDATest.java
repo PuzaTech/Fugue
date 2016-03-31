@@ -198,7 +198,7 @@ public class LDATest {
                     LOGGER.info("Finished sampling.");
                     LOGGER.info("Finished Iteration " + CURRENT_ITER);
 
-                    double likelihood = likelihood(modelID);
+                    double likelihood = likelihood(modelPools.get(modelID).wordTopicCounts, modelPools.get(modelID).docTopicBuffers, modelPools.get(modelID).alpha, modelPools.get(modelID).beta, modelPools.get(modelID).alphaSum, modelPools.get(modelID).betaSum);
                     LOGGER.info("Iteration " + CURRENT_ITER + " Likelihood:" + Double.toString(likelihood));
                     countsCheck();
                 }

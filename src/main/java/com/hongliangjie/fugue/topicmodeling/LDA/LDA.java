@@ -210,38 +210,42 @@ public class LDA extends TopicModel {
         LOGGER.info("Finished initializing model");
     }
 
-    public double likelihood(int modelID) {
+    public double likelihood(int modelID){
+        return likelihood(modelPools.get(modelID).wordTopicCounts, modelPools.get(modelID).docTopicBuffers, modelPools.get(modelID).alpha, modelPools.get(modelID).beta, modelPools.get(modelID).alphaSum, modelPools.get(modelID).betaSum);
+    }
+
+    public double likelihood(List<int[]> wordTopicCounts, List<int[]> docTopicBuffers, double[] alpha, double[] beta, double alphaSum, double betaSum) {
         double result_1 = 0.0;
         double result_2 = 0.0;
 
         // topics side likelihood
-        for (int v = 0; v < modelPools.get(modelID).beta.length; v++) {
-            result_1 += LogGamma.logGamma(modelPools.get(modelID).beta[v]);
+        for (int v = 0; v < beta.length; v++) {
+            result_1 += LogGamma.logGamma(beta[v]);
         }
-        result_1 = TOPIC_NUM * (LogGamma.logGamma(modelPools.get(modelID).betaSum) - result_1);
+        result_1 = TOPIC_NUM * (LogGamma.logGamma(betaSum) - result_1);
 
         for (int k = 0; k < TOPIC_NUM; k++) {
             double part_1 = 0.0;
             double part_2 = 0.0;
             for (int v=0; v < modelPools.get(0).wordTopicCounts.size(); v++) {
-                part_1 = part_1 + LogGamma.logGamma(modelPools.get(modelID).wordTopicCounts.get(v)[k] + modelPools.get(modelID).beta[v]);
-                part_2 = part_2 + (modelPools.get(modelID).wordTopicCounts.get(v)[k] + modelPools.get(modelID).beta[v]);
+                part_1 = part_1 + LogGamma.logGamma(wordTopicCounts.get(v)[k] + beta[v]);
+                part_2 = part_2 + (wordTopicCounts.get(v)[k] + beta[v]);
             }
             result_1 = result_1 + part_1 - LogGamma.logGamma(part_2);
         }
 
         // document side likelihood
         for (int k = 0; k < TOPIC_NUM; k++) {
-            result_2 += LogGamma.logGamma(modelPools.get(modelID).alpha[k]);
+            result_2 += LogGamma.logGamma(alpha[k]);
         }
-        result_2 = modelPools.get(modelID).docTopicBuffers.size() * (LogGamma.logGamma(modelPools.get(modelID).alphaSum) - result_2);
+        result_2 = docTopicBuffers.size() * (LogGamma.logGamma(alphaSum) - result_2);
 
-        for (int d = 0; d < modelPools.get(modelID).docTopicBuffers.size(); d++) {
+        for (int d = 0; d < docTopicBuffers.size(); d++) {
             double part_1 = 0.0;
             double part_2 = 0.0;
             for (int k = 0; k < TOPIC_NUM; k++) {
-                part_1 = part_1 + LogGamma.logGamma(modelPools.get(modelID).docTopicBuffers.get(d)[k] + modelPools.get(modelID).alpha[k]);
-                part_2 = part_2 + modelPools.get(modelID).docTopicBuffers.get(d)[k] + modelPools.get(modelID).alpha[k];
+                part_1 = part_1 + LogGamma.logGamma(docTopicBuffers.get(d)[k] + alpha[k]);
+                part_2 = part_2 + docTopicBuffers.get(d)[k] + alpha[k];
             }
             result_2 = result_2 + part_1 - LogGamma.logGamma(part_2);
         }
@@ -372,7 +376,7 @@ public class LDA extends TopicModel {
                 LOGGER.info("Finished sampling.");
                 LOGGER.info("Finished Iteration " + CURRENT_ITER);
                 if (CURRENT_ITER % 25 == 0) {
-                    double likelihood = likelihood(modelID);
+                    double likelihood = likelihood(modelPools.get(modelID).wordTopicCounts, modelPools.get(modelID).docTopicBuffers, modelPools.get(modelID).alpha, modelPools.get(modelID).beta, modelPools.get(modelID).alphaSum, modelPools.get(modelID).betaSum);
                     LOGGER.info("Iteration " + CURRENT_ITER + " Likelihood:" + Double.toString(likelihood));
                 }
 
