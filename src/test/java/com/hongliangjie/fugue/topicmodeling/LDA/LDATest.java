@@ -391,6 +391,7 @@ public class LDATest {
         msg.setParam("hyperSamples", "10");
         msg.setParam("hyperSteps", "1.0");
         msg.setParam("hyperIters", "50");
+        msg.setParam("random", "deterministic");
         DeepHyperOptLDA m = new DeepHyperOptLDA();
         m.setMessage(msg);
         m.train(0,100);
