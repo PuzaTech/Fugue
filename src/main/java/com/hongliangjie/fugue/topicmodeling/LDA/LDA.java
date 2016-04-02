@@ -40,6 +40,7 @@ public class LDA extends TopicModel {
     protected int TOPIC_NUM;
     protected int MAX_ITER;
     protected int CURRENT_ITER;
+    protected int BURN_IN;
     protected int INTERVAL;
     protected int TOTAL_TOKEN;
     protected int SAVED;
@@ -210,38 +211,155 @@ public class LDA extends TopicModel {
         LOGGER.info("Finished initializing model");
     }
 
-    public double likelihood(int modelID) {
+    protected abstract class HyperparameterOptimization{
+        public abstract void optimize(); // as hyper-parameter optimization only happens in training, the modelID is always set to 0 and therefore ignored.
+    }
+
+    protected class SliceSampling extends HyperparameterOptimization{
+
+        protected int _samplesNum; // the number of samples
+        protected double _step; // the step used in StepOut
+        protected int _hyperIterations;
+
+        public SliceSampling(){
+            _samplesNum = Integer.parseInt(cmdArg.getParam("hyperSamples").toString());
+            _step = Double.parseDouble(cmdArg.getParam("hyperSteps").toString());
+            _hyperIterations = Integer.parseInt(cmdArg.getParam("hyperIters").toString());
+        }
+
+        protected void copyArray(double[] src, double[] dest){
+            for(int i = 0; i < src.length; i++)
+                dest[i] = src[i];
+        }
+
+        @Override
+        public void optimize() {
+            double[] alpha = new double[modelPools.get(0).alpha.length];
+            double alphaSum = modelPools.get(0).alphaSum;
+            double[] beta = new double[modelPools.get(0).beta.length];
+            double betaSum = modelPools.get(0).betaSum;
+
+            double[] alphaLeft = new double[alpha.length];
+            double[] alphaRight = new double[alpha.length];
+            double[] betaLeft = new double[beta.length];
+            double[] betaRight = new double[beta.length];
+
+            double[] alphaNew = new double[alpha.length];
+            double[] betaNew = new double[beta.length];
+            double alphaNewSum = 0.0;
+            double betaNewSum = 0.0;
+
+            copyArray(modelPools.get(0).alpha, alpha);
+            copyArray(modelPools.get(0).beta, beta);
+
+            for(int k = 0; k < _samplesNum; k++){
+                double old_likelihood = likelihood(modelPools.get(0).wordTopicCounts, modelPools.get(0).docTopicBuffers, alpha, beta, alphaSum, betaSum);
+                double new_likelihood = mathLog.compute(randomGNR.nextDouble()) + old_likelihood;
+
+                // stepping out
+                for (int i = 0; i < alpha.length; i++){
+                    alphaLeft[i] = alpha[i] - randomGNR.nextDouble() * _step;
+                    alphaRight[i] = alphaLeft[i] + _step;
+                }
+
+                for (int i = 0; i < beta.length; i++){
+                    betaLeft[i] = beta[i] - randomGNR.nextDouble() * _step;
+                    betaRight[i] = betaLeft[i] + _step;
+                }
+                // This stepping out is simplified, please look at Fig 3. in Neal's "Slice Sampling" paper
+
+                for(int j = 0; j < _hyperIterations; j++){
+                    alphaNewSum = 0.0;
+                    betaNewSum = 0.0;
+
+                    for(int i = 0; i < alpha.length; i++){
+                        alphaNew[i] = randomGNR.nextDouble() * (alphaRight[i] - alphaLeft[i]) + alphaLeft[i];
+                        alphaNewSum += alphaNew[i];
+                    }
+
+                    for(int i = 0; i < beta.length; i++){
+                        betaNew[i] = randomGNR.nextDouble() * (betaRight[i] - betaLeft[i]) + betaLeft[i];
+                        betaNewSum += betaNew[i];
+                    }
+
+                    double test_likelihood = likelihood(modelPools.get(0).wordTopicCounts, modelPools.get(0).docTopicBuffers, alphaNew, betaNew, alphaNewSum, betaNewSum);
+
+                    if (test_likelihood > new_likelihood){
+                        copyArray(alphaNew, alpha);
+                        alphaSum = alphaNewSum;
+
+                        copyArray(betaNew, beta);
+                        betaSum = betaNewSum;
+                        LOGGER.info("[Slice Sampling]: Sample " + k + " A new set of hyper-parameter with likelihood " + test_likelihood);
+                        break;
+                    }
+                    else{
+                        for(int i = 0; i < alpha.length; i++){
+                            if(alphaNew[i] < alpha[i]){
+                                alphaLeft[i] = alphaNew[i];
+                            }
+                            else{
+                                alphaRight[i] = alphaNew[i];
+                            }
+                        }
+                        for(int i = 0; i < beta.length; i++){
+                            if(betaNew[i] < beta[i]){
+                                betaLeft[i] = betaNew[i];
+                            }
+                            else{
+                                betaRight[i] = betaNew[i];
+                            }
+                        }
+                    }
+                }
+            }
+            // only keep the last sample for both alpha and beta
+            // update back to models
+            copyArray(alpha, modelPools.get(0).alpha);
+            modelPools.get(0).alphaSum = alphaSum;
+
+            copyArray(beta, modelPools.get(0).beta);
+            modelPools.get(0).betaSum = betaSum;
+        }
+    }
+
+
+    public double likelihood(int modelID){
+        return likelihood(modelPools.get(modelID).wordTopicCounts, modelPools.get(modelID).docTopicBuffers, modelPools.get(modelID).alpha, modelPools.get(modelID).beta, modelPools.get(modelID).alphaSum, modelPools.get(modelID).betaSum);
+    }
+
+    public double likelihood(List<int[]> wordTopicCounts, List<int[]> docTopicBuffers, double[] alpha, double[] beta, double alphaSum, double betaSum) {
         double result_1 = 0.0;
         double result_2 = 0.0;
 
         // topics side likelihood
-        for (int v = 0; v < modelPools.get(modelID).beta.length; v++) {
-            result_1 += LogGamma.logGamma(modelPools.get(modelID).beta[v]);
+        for (int v = 0; v < beta.length; v++) {
+            result_1 += LogGamma.logGamma(beta[v]);
         }
-        result_1 = TOPIC_NUM * (LogGamma.logGamma(modelPools.get(modelID).betaSum) - result_1);
+        result_1 = TOPIC_NUM * (LogGamma.logGamma(betaSum) - result_1);
 
         for (int k = 0; k < TOPIC_NUM; k++) {
             double part_1 = 0.0;
             double part_2 = 0.0;
             for (int v=0; v < modelPools.get(0).wordTopicCounts.size(); v++) {
-                part_1 = part_1 + LogGamma.logGamma(modelPools.get(modelID).wordTopicCounts.get(v)[k] + modelPools.get(modelID).beta[v]);
-                part_2 = part_2 + (modelPools.get(modelID).wordTopicCounts.get(v)[k] + modelPools.get(modelID).beta[v]);
+                part_1 = part_1 + LogGamma.logGamma(wordTopicCounts.get(v)[k] + beta[v]);
+                part_2 = part_2 + (wordTopicCounts.get(v)[k] + beta[v]);
             }
             result_1 = result_1 + part_1 - LogGamma.logGamma(part_2);
         }
 
         // document side likelihood
         for (int k = 0; k < TOPIC_NUM; k++) {
-            result_2 += LogGamma.logGamma(modelPools.get(modelID).alpha[k]);
+            result_2 += LogGamma.logGamma(alpha[k]);
         }
-        result_2 = modelPools.get(modelID).docTopicBuffers.size() * (LogGamma.logGamma(modelPools.get(modelID).alphaSum) - result_2);
+        result_2 = docTopicBuffers.size() * (LogGamma.logGamma(alphaSum) - result_2);
 
-        for (int d = 0; d < modelPools.get(modelID).docTopicBuffers.size(); d++) {
+        for (int d = 0; d < docTopicBuffers.size(); d++) {
             double part_1 = 0.0;
             double part_2 = 0.0;
             for (int k = 0; k < TOPIC_NUM; k++) {
-                part_1 = part_1 + LogGamma.logGamma(modelPools.get(modelID).docTopicBuffers.get(d)[k] + modelPools.get(modelID).alpha[k]);
-                part_2 = part_2 + modelPools.get(modelID).docTopicBuffers.get(d)[k] + modelPools.get(modelID).alpha[k];
+                part_1 = part_1 + LogGamma.logGamma(docTopicBuffers.get(d)[k] + alpha[k]);
+                part_2 = part_2 + docTopicBuffers.get(d)[k] + alpha[k];
             }
             result_2 = result_2 + part_1 - LogGamma.logGamma(part_2);
         }
@@ -299,14 +417,16 @@ public class LDA extends TopicModel {
         protected int[] docTopicBuffer;
         protected List<Integer> docTopicAssignment;
         protected Sampler sampler;
+        protected HyperparameterOptimization hyperOpt;
 
         public ProcessDocuments(){
-            this(new GibbsSampling());
+            this(new GibbsSampling(), null);
         }
 
-        public ProcessDocuments(Sampler s){
+        public ProcessDocuments(Sampler s, HyperparameterOptimization hyper){
             sample_buffer = new double[TOPIC_NUM];
             sampler = s;
+            hyperOpt = hyper;
         }
 
         public void computeProbabilities(int modelID, int featureID){
@@ -372,7 +492,7 @@ public class LDA extends TopicModel {
                 LOGGER.info("Finished sampling.");
                 LOGGER.info("Finished Iteration " + CURRENT_ITER);
                 if (CURRENT_ITER % 25 == 0) {
-                    double likelihood = likelihood(modelID);
+                    double likelihood = likelihood(modelPools.get(modelID).wordTopicCounts, modelPools.get(modelID).docTopicBuffers, modelPools.get(modelID).alpha, modelPools.get(modelID).beta, modelPools.get(modelID).alphaSum, modelPools.get(modelID).betaSum);
                     LOGGER.info("Iteration " + CURRENT_ITER + " Likelihood:" + Double.toString(likelihood));
                 }
 
@@ -385,6 +505,13 @@ public class LDA extends TopicModel {
                 LOGGER.info("Iteration Duration " + CURRENT_ITER + " " + Double.toString(timeDifference));
                 LOGGER.info("Tokens (per-K)/Seconds " + CURRENT_ITER + " " + Double.toString(tokenPerSeconds));
                 iterationTimes[CURRENT_ITER] = timeDifference;
+
+                if ((CURRENT_ITER >= BURN_IN) && (CURRENT_ITER % 25 == 0) && (hyperOpt != null)){
+                    // hyper-parameter optimization
+                    LOGGER.info("Start Hyper-parameter Optimization");
+                    hyperOpt.optimize();
+                    LOGGER.info("Finished Hyper-parameter Optimization");
+                }
             }
 
             double averageTime = 0;
@@ -403,7 +530,7 @@ public class LDA extends TopicModel {
         protected int[] modelSaved;
 
         public ProcessTestDocuments(Sampler s){
-            super(s);
+            super(s, null);
         }
 
         protected double computeTermProbability(double[] theta, int featureID, ModelCountainer m){
@@ -518,6 +645,22 @@ public class LDA extends TopicModel {
         return s;
     }
 
+    protected HyperparameterOptimization getHyperOpt(String hyperOptStr){
+        HyperparameterOptimization hyper = null;
+        if (hyperOptStr != null){
+            if ("none".equals(hyperOptStr)){
+                hyper = null;
+            }
+            else if ("slice".equals(hyperOptStr)){
+                hyper = new SliceSampling();
+            }
+            else{
+                hyper = null;
+            }
+        }
+        return hyper;
+    }
+
     public void train(){
         int start = Integer.parseInt(cmdArg.getParam("start").toString());
         int end = Integer.parseInt(cmdArg.getParam("end").toString());
@@ -533,9 +676,11 @@ public class LDA extends TopicModel {
         LOGGER.info("Start to perform Gibbs Sampling");
         LOGGER.info("MAX_ITER:" + MAX_ITER);
         String samplerStr = cmdArg.getParam("LDASampler").toString();
+        String hyperOptStr = cmdArg.getParam("LDAHyperOpt").toString();
         int save = Integer.parseInt(cmdArg.getParam("saveModel").toString());
         Sampler s = getSampler(samplerStr);
-        ProcessDocuments p = new ProcessDocuments(s);
+        HyperparameterOptimization hyper = getHyperOpt(hyperOptStr);
+        ProcessDocuments p = new ProcessDocuments(s, hyper);
         s.setProcessor(p);
         p.sampleOverDocs(0, internalDocs, start, end, MAX_ITER, save);
         if (save == 1)

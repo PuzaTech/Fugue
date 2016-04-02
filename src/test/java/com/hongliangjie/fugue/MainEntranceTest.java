@@ -40,6 +40,8 @@ public class MainEntranceTest {
         assertEquals("topk", true, topkOption != null);
         Option LDASamplerOption = options.getOption("LDASampler");
         assertEquals("LDASampler", true, LDASamplerOption != null);
+        Option LDAHyperOptOption = options.getOption("LDAHyperOpt");
+        assertEquals("LDAHyperOpt", true, LDAHyperOptOption != null);
         Option randomOption = options.getOption("random");
         assertEquals("random", true, randomOption != null);
         Option expOption = options.getOption("exp");
@@ -57,6 +59,7 @@ public class MainEntranceTest {
         assertEquals("iters", true, cmdMsg.getParam("iters") != null);
         assertEquals("topk", true, cmdMsg.getParam("topk") != null);
         assertEquals("LDASampler", true, cmdMsg.getParam("LDASampler") != null);
+        assertEquals("LDAHyperOpt", true, cmdMsg.getParam("LDAHyperOpt") != null);
         assertEquals("random", true, cmdMsg.getParam("random") != null);
         assertEquals("exp", true, cmdMsg.getParam("exp") != null);
         assertEquals("log", true, cmdMsg.getParam("log") != null);
