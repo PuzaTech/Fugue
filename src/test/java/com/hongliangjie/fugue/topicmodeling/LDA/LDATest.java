@@ -142,7 +142,7 @@ public class LDATest {
         protected class TestProcesser extends ProcessDocuments{
             protected Sampler sampler2;
             TestProcesser(Sampler g1, Sampler g2){
-                super(g1);
+                super(g1, null);
                 sampler2 = g2;
             }
 
@@ -299,6 +299,7 @@ public class LDATest {
         assertEquals("Deep LDA Train Passed", true, true);
         // This is a black-box test
         msg.setParam("LDASampler", "normal");
+        msg.setParam("LDAHyperOpt", "none");
         msg.setParam("random", "deterministic");
         msg.setParam("iters", 1);
         LDA normalLDA1 = new LDA();
