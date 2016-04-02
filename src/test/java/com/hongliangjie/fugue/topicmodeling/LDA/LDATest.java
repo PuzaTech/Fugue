@@ -143,7 +143,7 @@ public class LDATest {
                 super(g, h);
             }
 
-            private void CheckHyper(int modelID){
+            private void checkHyper(int modelID){
                 double alphaSum = 0.0;
                 for(int i = 0; i < modelPools.get(modelID).alpha.length; i++){
                     alphaSum += modelPools.get(modelID).alpha[i];
@@ -172,9 +172,9 @@ public class LDATest {
 
                     if((CURRENT_ITER > 0) && (CURRENT_ITER % 10 ==0)) {
                         LOGGER.info("Start Hyper-parameter Optimization");
-                        hyperOpt.Optimize();
+                        hyperOpt.optimize();
                         LOGGER.info("Finished Hyper-parameter Optimization");
-                        CheckHyper(modelID);
+                        checkHyper(modelID);
 
                     }
                 }

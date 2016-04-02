@@ -212,7 +212,7 @@ public class LDA extends TopicModel {
     }
 
     protected abstract class HyperparameterOptimization{
-        public abstract void Optimize(); // as hyper-parameter optimization only happens in training, the modelID is always set to 0 and therefore ignored.
+        public abstract void optimize(); // as hyper-parameter optimization only happens in training, the modelID is always set to 0 and therefore ignored.
     }
 
     protected class SliceSampling extends HyperparameterOptimization{
@@ -233,7 +233,7 @@ public class LDA extends TopicModel {
         }
 
         @Override
-        public void Optimize() {
+        public void optimize() {
             double[] alpha = new double[modelPools.get(0).alpha.length];
             double alphaSum = modelPools.get(0).alphaSum;
             double[] beta = new double[modelPools.get(0).beta.length];
@@ -509,7 +509,7 @@ public class LDA extends TopicModel {
                 if ((CURRENT_ITER >= BURN_IN) && (CURRENT_ITER % 25 == 0) && (hyperOpt != null)){
                     // hyper-parameter optimization
                     LOGGER.info("Start Hyper-parameter Optimization");
-                    hyperOpt.Optimize();
+                    hyperOpt.optimize();
                     LOGGER.info("Finished Hyper-parameter Optimization");
                 }
             }
