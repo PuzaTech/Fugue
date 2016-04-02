@@ -254,7 +254,7 @@ public class LDA extends TopicModel {
 
             for(int k = 0; k < _samplesNum; k++){
                 double old_likelihood = likelihood(modelPools.get(0).wordTopicCounts, modelPools.get(0).docTopicBuffers, alpha, beta, alphaSum, betaSum);
-                double u = mathLog.compute(randomGNR.nextDouble()) + old_likelihood;
+                double new_likelihood = mathLog.compute(randomGNR.nextDouble()) + old_likelihood;
 
                 // stepping out
                 for (int i = 0; i < alpha.length; i++){
@@ -284,7 +284,7 @@ public class LDA extends TopicModel {
 
                     double test_likelihood = likelihood(modelPools.get(0).wordTopicCounts, modelPools.get(0).docTopicBuffers, alphaNew, betaNew, alphaNewSum, betaNewSum);
 
-                    if (test_likelihood > old_likelihood){
+                    if (test_likelihood > new_likelihood){
                         copyArray(alphaNew, alpha);
                         alphaSum = alphaNewSum;
 
