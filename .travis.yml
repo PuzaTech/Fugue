@@ -5,7 +5,7 @@ addons:
         repo_token: 2b0e05568065d73f26772b0047ae8d019084c0e8a4e7e9b923a81e0b84ffd044
 
 script:
-    ./gradlew test -i
+    ./gradlew test -debug
 
 install: /bin/true
 
