@@ -290,7 +290,7 @@ public class LDA extends TopicModel {
 
                         copyArray(betaNew, beta);
                         betaSum = betaNewSum;
-                        LOGGER.info("[Slice Sampling]: A new set of hyper-parameter with likelihood " + test_likelihood);
+                        LOGGER.info("[Slice Sampling]: Sample " + k + " A new set of hyper-parameter with likelihood " + test_likelihood);
                         break;
                     }
                     else{

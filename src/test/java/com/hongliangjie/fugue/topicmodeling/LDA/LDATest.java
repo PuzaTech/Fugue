@@ -135,13 +135,75 @@ public class LDATest {
         }
     }
 
+    private class DeepHyperOptLDA extends LDA{
+
+        protected class TestProcessor extends ProcessDocuments{
+
+            TestProcessor(Sampler g, HyperparameterOptimization h){
+                super(g, h);
+            }
+
+            private void CheckHyper(int modelID){
+                double alphaSum = 0.0;
+                for(int i = 0; i < modelPools.get(modelID).alpha.length; i++){
+                    alphaSum += modelPools.get(modelID).alpha[i];
+                }
+                assertEquals("alpha Sum", true, Math.abs(alphaSum - modelPools.get(modelID).alphaSum) < 1e-10);
+
+                double betaSum = 0.0;
+                for(int i = 0; i < modelPools.get(modelID).beta.length; i++){
+                    betaSum += modelPools.get(modelID).beta[i];
+                }
+                assertEquals("alpha Sum", true, Math.abs(betaSum - modelPools.get(modelID).betaSum) < 1e-10);
+            }
+
+            @Override
+            public void sampleOverDocs(int modelID, List<Document> docs, int start, int end, int maxIter, int save){
+                for (CURRENT_ITER = 0; CURRENT_ITER < maxIter; CURRENT_ITER++) {
+                    LOGGER.info("Start to Iteration " + CURRENT_ITER);
+                    for (int d = start; d < end; d++) {
+                        sampleOneDoc(docs, d, modelID);
+                    }
+                    LOGGER.info("Finished sampling.");
+                    LOGGER.info("Finished Iteration " + CURRENT_ITER);
+
+                    double likelihood = likelihood(modelPools.get(modelID).wordTopicCounts, modelPools.get(modelID).docTopicBuffers, modelPools.get(modelID).alpha, modelPools.get(modelID).beta, modelPools.get(modelID).alphaSum, modelPools.get(modelID).betaSum);
+                    LOGGER.info("Iteration " + CURRENT_ITER + " Likelihood:" + Double.toString(likelihood));
+
+                    if((CURRENT_ITER > 0) && (CURRENT_ITER % 10 ==0)) {
+                        LOGGER.info("Start Hyper-parameter Optimization");
+                        hyperOpt.Optimize();
+                        LOGGER.info("Finished Hyper-parameter Optimization");
+                        CheckHyper(modelID);
+
+                    }
+                }
+
+
+            }
+        }
+
+        @Override
+        public void train(int start, int end){
+            initTrainModel();
+            LOGGER.info("Start to perform Gibbs Sampling");
+            LOGGER.info("MAX_ITER:" + MAX_ITER);
+
+            Sampler g = new GibbsBinarySampling();
+            HyperparameterOptimization h = new SliceSampling();
+            ProcessDocuments p = new DeepHyperOptLDA.TestProcessor(g, h);
+            g.setProcessor(p);
+            p.sampleOverDocs(0, internalDocs, 0, internalDocs.size(), MAX_ITER, 0);
+        }
+    }
+
 
     private class DeepTrainLDA extends LDA{
 
 
-        protected class TestProcesser extends ProcessDocuments{
+        protected class TestProcessor extends ProcessDocuments{
             protected Sampler sampler2;
-            TestProcesser(Sampler g1, Sampler g2){
+            TestProcessor(Sampler g1, Sampler g2){
                 super(g1, null);
                 sampler2 = g2;
             }
@@ -214,7 +276,7 @@ public class LDATest {
 
             Sampler g1 = new GibbsBinarySampling();
             Sampler g2 = new GibbsLogSampling();
-            ProcessDocuments p = new TestProcesser(g1,g2);
+            ProcessDocuments p = new TestProcessor(g1,g2);
             g1.setProcessor(p);
             g2.setProcessor(p);
             p.sampleOverDocs(0, internalDocs, 0, internalDocs.size(), MAX_ITER, 0);
@@ -321,6 +383,18 @@ public class LDATest {
         double l3 = logLDA.likelihood(0);
         double e3 = Math.abs(l3 - (-201179.71361803956));
         assertEquals("Deterministic Sampling", true, e3 < 1e-10);
+    }
+
+    @Test
+    public void testHyper() throws Exception{
+        Message msg = prepareDocuments(100);
+        msg.setParam("hyperSamples", "10");
+        msg.setParam("hyperSteps", "1.0");
+        msg.setParam("hyperIters", "50");
+        DeepHyperOptLDA m = new DeepHyperOptLDA();
+        m.setMessage(msg);
+        m.train(0,100);
+        assertEquals("Deep Hyper-Opt LDA Train Passed", true, true);
     }
 
 }
