@@ -54,6 +54,7 @@ class ProfileAPTrain(ProfileParam, object):
 class ProfileAPTrainHyper(ProfileAPTrain, object):
     def __init__(self):
         super(ProfileAPTrainHyper, self).__init__()
+        self._modelFile = 'examples/models/model.ap-slice.json'
         self._LDAHyperOpt = 'slice'
 
 class cmdBuilder(object):
