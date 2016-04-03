@@ -388,9 +388,9 @@ public class LDATest {
     @Test
     public void testHyper() throws Exception{
         Message msg = prepareDocuments(100);
-        msg.setParam("hyperSamples", "10");
-        msg.setParam("hyperSteps", "1.0");
-        msg.setParam("hyperIters", "50");
+        msg.setParam("sliceSamples", "10");
+        msg.setParam("sliceSteps", "1.0");
+        msg.setParam("sliceIters", "50");
         msg.setParam("random", "deterministic");
         DeepHyperOptLDA m = new DeepHyperOptLDA();
         m.setMessage(msg);

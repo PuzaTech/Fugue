@@ -1,6 +1,5 @@
 package com.hongliangjie.fugue;
 
-import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.junit.Test;
 
@@ -26,30 +25,18 @@ public class MainEntranceTest {
         MainTestClass main = new MainTestClass();
         Options options = main.getOptions();
 
-        Option inputFileOption = options.getOption("inputFile");
-        assertEquals("inputFile", true, inputFileOption != null);
-        Option modelFileOption = options.getOption("modelFile");
-        assertEquals("modelFile", true, modelFileOption != null);
-        Option taskOption = options.getOption("task");
-        assertEquals("task", true, taskOption != null);
-        Option topicsOption = options.getOption("topics");
-        assertEquals("topics", true, topicsOption != null);
-        Option itersOption = options.getOption("iters");
-        assertEquals("iters", true, itersOption != null);
-        Option topkOption = options.getOption("topk");
-        assertEquals("topk", true, topkOption != null);
-        Option LDASamplerOption = options.getOption("LDASampler");
-        assertEquals("LDASampler", true, LDASamplerOption != null);
-        Option LDAHyperOptOption = options.getOption("LDAHyperOpt");
-        assertEquals("LDAHyperOpt", true, LDAHyperOptOption != null);
-        Option randomOption = options.getOption("random");
-        assertEquals("random", true, randomOption != null);
-        Option expOption = options.getOption("exp");
-        assertEquals("exp", true, expOption != null);
-        Option logOption = options.getOption("log");
-        assertEquals("log", true, logOption != null);
-        Option saveModelOption = options.getOption("saveModel");
-        assertEquals("saveModel", true, saveModelOption != null);
+        assertEquals("inputFile", true, options.getOption("inputFile") != null);
+        assertEquals("modelFile", true, options.getOption("modelFile") != null);
+        assertEquals("task", true, options.getOption("task") != null);
+        assertEquals("topics", true, options.getOption("topics") != null);
+        assertEquals("iters", true, options.getOption("iters") != null);
+        assertEquals("topk", true, options.getOption("topk") != null);
+        assertEquals("LDASampler", true, options.getOption("LDASampler") != null);
+        assertEquals("LDAHyperOpt", true, options.getOption("LDAHyperOpt") != null);
+        assertEquals("random", true, options.getOption("random") != null);
+        assertEquals("exp", true, options.getOption("exp") != null);
+        assertEquals("log", true, options.getOption("log") != null);
+        assertEquals("saveModel", true, options.getOption("saveModel") != null);
 
         Message cmdMsg = main.getCMD(null);
         assertEquals("inputFile", true, cmdMsg.getParam("inputFile") != null);
@@ -60,6 +47,9 @@ public class MainEntranceTest {
         assertEquals("topk", true, cmdMsg.getParam("topk") != null);
         assertEquals("LDASampler", true, cmdMsg.getParam("LDASampler") != null);
         assertEquals("LDAHyperOpt", true, cmdMsg.getParam("LDAHyperOpt") != null);
+        assertEquals("sliceSamples", true, cmdMsg.getParam("sliceSamples") != null);
+        assertEquals("sliceSteps", true, cmdMsg.getParam("sliceSteps") != null);
+        assertEquals("sliceIters", true, cmdMsg.getParam("sliceIters") != null);
         assertEquals("random", true, cmdMsg.getParam("random") != null);
         assertEquals("exp", true, cmdMsg.getParam("exp") != null);
         assertEquals("log", true, cmdMsg.getParam("log") != null);

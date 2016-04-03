@@ -224,9 +224,9 @@ public class LDA extends TopicModel {
         protected int _hyperIterations;
 
         public SliceSampling(){
-            _samplesNum = Integer.parseInt(cmdArg.getParam("hyperSamples").toString());
-            _step = Double.parseDouble(cmdArg.getParam("hyperSteps").toString());
-            _hyperIterations = Integer.parseInt(cmdArg.getParam("hyperIters").toString());
+            _samplesNum = Integer.parseInt(cmdArg.getParam("sliceSamples").toString());
+            _step = Double.parseDouble(cmdArg.getParam("sliceSteps").toString());
+            _hyperIterations = Integer.parseInt(cmdArg.getParam("sliceIters").toString());
         }
 
         protected void copyArray(double[] src, double[] dest){

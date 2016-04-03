@@ -45,6 +45,7 @@ class ProfileAPTrain(ProfileParam, object):
         self._inputFile = 'examples/data/ap.json'
         self._modelFile = 'examples/models/model.ap.json'
         self._LDASampler = 'binary'
+        self._LDAHyperOut = 'slice'
         self._random = 'deterministic'
         self._task = 'train'
         self._start = 0
