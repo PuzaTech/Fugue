@@ -11,9 +11,13 @@ Fugue is a research oriented topic modeling package for text mining and machine 
 
 ### Models/Algorithms
 * Latent Dirichlet allocation (LDA) with collapsed Gibbs sampling
+  * Using "Estimate theta" method for computing perplexity in test documents.
+  * Using multiple MCMC chains to average results. 
+  * Slice sampling for hyper-parameter sampling
+  * Optimizain methods for hyper-parameter tuning
 
 ### Roadmap
-We are expecting v1.0 in Mid 2016. See [Detailed Plan](https://github.com/PuzaTech/Fugue/wiki/Fugue-1.0-Roadmap).
+We are expecting v1.0 in June 2016. See [Detailed Plan](https://github.com/PuzaTech/Fugue/wiki/Fugue-1.0-Roadmap).
 
 ### Prerequisites
 * Gradle
@@ -34,6 +38,3 @@ $ python Fugue.py
 ```sh
 $ python Fugue.py --task train
 ```
-
-### Admin
-https://zube.io/boards/52705186
