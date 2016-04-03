@@ -123,7 +123,7 @@ public class MainEntrance {
 
         Options options = MainEntrance.createOptions();
         Message cmd = MainEntrance.parseOptions(options, args);
-        if ("NULL".equals(cmd.getParam("task"))) {
+        if ((cmd == null) || ("NULL".equals(cmd.getParam("task")))) {
             LOGGER.info("Failed.");
         }
         else{

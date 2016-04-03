@@ -45,11 +45,16 @@ class ProfileAPTrain(ProfileParam, object):
         self._inputFile = 'examples/data/ap.json'
         self._modelFile = 'examples/models/model.ap.json'
         self._LDASampler = 'binary'
-        self._LDAHyperOut = 'slice'
+        self._LDAHyperOpt = 'none'
         self._random = 'deterministic'
         self._task = 'train'
         self._start = 0
         self._end = 1909
+
+class ProfileAPTrainHyper(ProfileAPTrain, object):
+    def __init__(self):
+        super(ProfileAPTrainHyper, self).__init__()
+        self._LDAHyperOpt = 'slice'
 
 class cmdBuilder(object):
     def __init__(self, profile):
