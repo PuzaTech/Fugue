@@ -82,6 +82,7 @@ public class LDA extends TopicModel {
     public LDA(RandomUtils r){
         TOPIC_NUM = 1;
         MAX_ITER = 250;
+        BURN_IN = 100;
         INTERVAL = 5;
         TOTAL_TOKEN = 0;
         SAVED = 0;
@@ -125,6 +126,7 @@ public class LDA extends TopicModel {
 
         TOPIC_NUM = Integer.parseInt(cmdArg.getParam("topics").toString());
         MAX_ITER = Integer.parseInt(cmdArg.getParam("iters").toString());
+
         iterationTimes = new double[MAX_ITER];
         internalDocs = (List<Document>) cmdArg.getParam("docs");
 
