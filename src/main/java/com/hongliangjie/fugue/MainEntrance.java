@@ -70,6 +70,9 @@ public class MainEntrance {
         cmd.setParam("multipleModels", "0");
         cmd.setParam("start", "0");
         cmd.setParam("end", "-1");
+        cmd.setParam("sliceSamples", "10");
+        cmd.setParam("sliceSteps", "1.0");
+        cmd.setParam("sliceIters", "50");
         return cmd;
     }
 
@@ -98,6 +101,9 @@ public class MainEntrance {
                 LOGGER.info("[CMD] TOPK:" + cmd.getParam("topk").toString());
                 LOGGER.info("[CMD] LDA Sampler:" + cmd.getParam("LDASampler").toString());
                 LOGGER.info("[CMD] LDA Hyperparameter Optimization:" + cmd.getParam("LDAHyperOpt").toString());
+                LOGGER.info("[CMD] LDA Slice Sampling SampleNums:" + cmd.getParam("sliceSamples").toString());
+                LOGGER.info("[CMD] LDA Slice Sampling Steps:" + cmd.getParam("sliceSteps").toString());
+                LOGGER.info("[CMD] LDA Slice Sampling Iterations:" + cmd.getParam("sliceIters").toString());
                 LOGGER.info("[CMD] Random Number Generator:" + cmd.getParam("random").toString());
                 LOGGER.info("[CMD] Math Log:" + cmd.getParam("log").toString());
                 LOGGER.info("[CMD] Math Exp:" + cmd.getParam("exp").toString());
@@ -117,7 +123,7 @@ public class MainEntrance {
 
         Options options = MainEntrance.createOptions();
         Message cmd = MainEntrance.parseOptions(options, args);
-        if ("NULL".equals(cmd.getParam("task"))) {
+        if ((cmd == null) || ("NULL".equals(cmd.getParam("task")))) {
             LOGGER.info("Failed.");
         }
         else{
