@@ -17,7 +17,7 @@ Fugue is a research oriented topic modeling package for text mining and machine 
   * Optimizain methods for hyper-parameter tuning
 
 ### Roadmap
-We are expecting v1.0 in June 2016. See [Detailed Plan](https://github.com/PuzaTech/Fugue/wiki/Fugue-1.0-Roadmap).
+We are expecting v1.0 in late 2016. See [Detailed Plan](https://github.com/PuzaTech/Fugue/wiki/Fugue-1.0-Roadmap).
 
 ### Prerequisites
 * Gradle
