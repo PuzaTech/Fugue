@@ -1,4 +1,4 @@
-package com.hongliangjie.fugue.topicmodeling.lda;
+package com.hongliangjie.fugue.topicmodeling.LDA;
 
 import com.google.gson.Gson;
 import com.hongliangjie.fugue.Message;

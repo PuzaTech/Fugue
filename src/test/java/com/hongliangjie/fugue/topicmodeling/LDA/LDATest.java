@@ -1,9 +1,10 @@
-package com.hongliangjie.fugue.topicmodeling.lda;
+package com.hongliangjie.fugue.topicmodeling.LDA;
 
 import com.hongliangjie.fugue.Message;
 import com.hongliangjie.fugue.io.DataReader;
 import com.hongliangjie.fugue.serialization.Document;
 import com.hongliangjie.fugue.serialization.Feature;
+import com.hongliangjie.fugue.topicmodeling.LDA.LDA;
 import org.junit.Test;
 
 import java.io.IOException;

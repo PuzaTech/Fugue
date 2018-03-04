@@ -1,7 +1,7 @@
 package com.hongliangjie.fugue.topicmodeling;
 
 import com.hongliangjie.fugue.Message;
-import com.hongliangjie.fugue.topicmodeling.lda.LDA;
+import com.hongliangjie.fugue.topicmodeling.LDA.LDA;
 import com.hongliangjie.fugue.io.DataReader;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
