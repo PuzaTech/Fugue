@@ -72,11 +72,11 @@ class cmdBuilder(object):
         fugue = subprocess.Popen(all_args, stdout = subprocess.PIPE, stderr = subprocess.STDOUT)
         while True:
             nextline = fugue.stdout.readline()
-            if nextline == '' and fugue.poll() is not None:
+            line = nextline.decode('ascii').rstrip()
+            if line == '' and fugue.poll() is not None:
                 break
-            sys.stdout.write(nextline)
+            sys.stdout.write(line+'\n')
             sys.stdout.flush()
-
         output = fugue.communicate()[0]
         exit_code = fugue.returncode
         if (exit_code == 0):
@@ -91,7 +91,7 @@ class cmdBuilder(object):
         all_args = self._other_params
         all_args.extend(self._profile.getParams())
         cmdStr = ' '.join(all_args)
-        print cmdStr
+        print(cmdStr)
         cmdBuilder.execute(all_args)
 
 
@@ -103,12 +103,12 @@ class cmdCompile(cmdBuilder, object):
         build_cmd = []
         build_cmd.append('gradle')
         build_cmd.append('build')
-        print '==================== Build ==================='
+        print('==================== Build ===================')
         cmdBuilder.execute(build_cmd)
         build_cmd = []
         build_cmd.append('gradle')
         build_cmd.append('fatJar')
-        print '==================== Jar ==================='
+        print('==================== Jar ===================')
         cmdBuilder.execute(build_cmd)
 
 
@@ -121,7 +121,7 @@ if __name__ == '__main__':
     if args.task is not None and args.task != '':
         if args.task == 'train' or args.task == 'test':
             if args.profile is not None and args.profile != '':
-                print args.profile
+                print(args.profile)
                 runProfile = get_class(args.profile)()
                 command = cmdBuilder(runProfile)
         elif args.task == 'build':
