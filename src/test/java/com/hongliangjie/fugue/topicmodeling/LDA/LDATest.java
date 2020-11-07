@@ -46,6 +46,7 @@ public class LDATest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void testRebuildIndex() throws Exception {
         Message msg = prepareDocuments(100);
         LDA lda = new LDA();

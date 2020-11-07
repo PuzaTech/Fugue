@@ -91,6 +91,7 @@ public class LDA extends TopicModel {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void setMessage(Message m) {
         cmdArg = m;
         String randomGNRStr = cmdArg.getParam("random").toString();
@@ -128,6 +129,7 @@ public class LDA extends TopicModel {
         MAX_ITER = Integer.parseInt(cmdArg.getParam("iters").toString());
 
         iterationTimes = new double[MAX_ITER];
+
         internalDocs = (List<Document>) cmdArg.getParam("docs");
 
     }
@@ -776,6 +778,7 @@ public class LDA extends TopicModel {
         }
     }
 
+    @SuppressWarnings("unchecked")
     public void loadModel() throws IOException {
         int multipleModels = Integer.parseInt(cmdArg.getParam("multipleModels").toString());
         String[] modelFileNames = null;

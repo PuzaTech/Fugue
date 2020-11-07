@@ -2,6 +2,7 @@ import argparse
 import sys
 import subprocess
 
+
 class ProfileParam(object):
     def __init__(self):
         self._inputFile = 'input.db'
@@ -27,6 +28,7 @@ class ProfileParam(object):
             return_args.append(str(value))
         return return_args
 
+
 class ProfileAPTest(ProfileParam, object):
     def __init__(self):
         super(ProfileAPTest, self).__init__()
@@ -38,6 +40,7 @@ class ProfileAPTest(ProfileParam, object):
         self._multipleModels = 1
         self._start = 1909
         self._end = -1
+
 
 class ProfileAPTrain(ProfileParam, object):
     def __init__(self):
@@ -51,11 +54,13 @@ class ProfileAPTrain(ProfileParam, object):
         self._start = 0
         self._end = 1909
 
+
 class ProfileAPTrainHyper(ProfileAPTrain, object):
     def __init__(self):
         super(ProfileAPTrainHyper, self).__init__()
         self._modelFile = 'examples/models/model.ap-slice.json'
         self._LDAHyperOpt = 'slice'
+
 
 class cmdBuilder(object):
     def __init__(self, profile):
@@ -85,9 +90,10 @@ class cmdBuilder(object):
         self._other_params.append('build/libs/fugue-topicmodeling-all-0.1.jar')
         all_args = self._other_params
         all_args.extend(self._profile.getParams())
-        cmdStr =  ' '.join(all_args)
+        cmdStr = ' '.join(all_args)
         print cmdStr
         cmdBuilder.execute(all_args)
+
 
 class cmdCompile(cmdBuilder, object):
     def __init__(self):
@@ -108,8 +114,8 @@ class cmdCompile(cmdBuilder, object):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='The Fugue Topic Modeling Package')
-    parser.add_argument('--profile', help = 'the profile to launch', default = 'ProfileAPTrain')
-    parser.add_argument('--task', help = 'the task to perform', default = 'build')
+    parser.add_argument('--profile', help='the profile to launch', default='ProfileAPTrain')
+    parser.add_argument('--task', help='the task to perform', default='build')
     args = parser.parse_args()
     get_class = lambda x: globals()[x]
     if args.task is not None and args.task != '':

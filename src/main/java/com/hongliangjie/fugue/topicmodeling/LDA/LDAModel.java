@@ -17,6 +17,7 @@ public class LDAModel extends Model{
     private int[] topicCounts = new int[1]; // total number of terms that are assigned to a topic
 
     @Override
+    @SuppressWarnings("unchecked")
     public void setParameters(Message msg) {
         // setup alpha
         alpha = (double[])msg.getParam("alpha");
