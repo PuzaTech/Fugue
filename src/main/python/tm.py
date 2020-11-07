@@ -173,7 +173,7 @@ def load_models(args):
     topicsOrders = {}
     N = 0
     for file in files:
-        print file
+        print(file)
         topicsOrder = load_model(file)
         for k in range(len(topicsOrder)):
             if not k in topicsOrders:
