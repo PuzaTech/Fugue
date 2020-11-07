@@ -21,7 +21,7 @@ For 1.0, See [Detailed Plan](https://github.com/PuzaTech/Fugue/wiki/Fugue-1.0-Ro
 ### Prerequisites
 * Gradle
 * JDK
-* Python 2.7
+* Python 3.7
 
 The design of the package is to limit the prerequesite packages and therefore you can easily experiment new models with minimum environments.
 
